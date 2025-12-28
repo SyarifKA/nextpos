@@ -240,17 +240,13 @@ export default function Product() {
         open={openEdit}
         product={selectedProduct}
         onClose={() => setOpenEdit(false)}
-        onSuccess={() => {
-            fetchProducts
-        }}
+        onSuccess={fetchProducts}
         />
       <DeleteProductModal
         open={openDelete}
         product={selectedProduct}
         onClose={() => setOpenDelete(false)}
-        onSuccess={() => {
-            fetchProducts
-        }}
+        onSuccess={fetchProducts}
         />
     </div>
   );
