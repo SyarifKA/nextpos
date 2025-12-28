@@ -2,22 +2,38 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { products as dummyProducts, Product } from "@/data/dummy";
+import { products as dummyProducts} from "@/data/dummy";
+import { TypeProduct } from "@/models/type";
 
-type CartItem = Product & { quantity: number };
+type CartItem = TypeProduct & { quantity: number };
 
 export default function PosPage() {
-  // Produk (dari dummy / nanti dari API)
-  const [products, setProducts] = useState<Product[]>([]);
-  // Filtered list berdasarkan search
+  const [products, setProducts] = useState<TypeProduct[]>([]);
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  // Keranjang/cart
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
-  // Load initial data (dummy)
+  // useEffect(() => {
+  //   setProducts(dummyProducts);
+  // }, []);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/product");
+      const json = await res.json();
+      setProducts(json.data || []);
+    } catch (error) {
+      console.error("Failed fetch products", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setProducts(dummyProducts);
+    fetchProducts();
   }, []);
 
   // Debounce sederhana untuk search (300ms)
@@ -40,7 +56,7 @@ export default function PosPage() {
 
   // Tambah produk ke cart (klik di tabel kiri)
   const addToCart = useCallback(
-    (product: Product) => {
+    (product: TypeProduct) => {
       setCartItems((prev) => {
         const found = prev.find((c) => c.id === product.id);
         if (found) {
@@ -58,7 +74,6 @@ export default function PosPage() {
     [setCartItems]
   );
 
-  // Ubah quantity di cart (increase / decrease)
   const updateCartQuantity = useCallback((id: number, newQty: number) => {
     setCartItems((prev) =>
       prev
@@ -80,6 +95,16 @@ export default function PosPage() {
 
   // Reset cart (mis. saat transaksi selesai)
   const clearCart = useCallback(() => setCartItems([]), []);
+
+  const perPage = 10;
+
+const totalPage = Math.ceil(filteredProducts.length / perPage);
+
+const paginatedProducts = useMemo(() => {
+  const start = (page - 1) * perPage;
+  return filteredProducts.slice(start, start + perPage);
+}, [filteredProducts, page]);
+
 
   return (
     <div className="w-full min-h-screen p-6 bg-gray-50">
@@ -112,7 +137,6 @@ export default function PosPage() {
           </div>
           <button
             onClick={() => {
-              // fokus ke input / atau bersihkan pencarian
               setQuery("");
             }}
             className="px-4 py-2 bg-primary text-white rounded-lg"
@@ -125,7 +149,7 @@ export default function PosPage() {
       {/* Main: produk kiri + cart kanan */}
       <main className="flex flex-col lg:flex-row gap-6">
         {/* Produk (kiri) */}
-        <section className="bg-white rounded-md shadow p-4 flex-1 overflow-auto">
+        <section className="bg-white rounded-md shadow p-4 h-fit flex-1 overflow-auto">
           <h3 className="font-semibold mb-3">Daftar Produk</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -137,7 +161,7 @@ export default function PosPage() {
                   <th className="p-3">Harga</th>
                 </tr>
               </thead>
-              <tbody>
+              {/* <tbody>
                 {filteredProducts.map((p) => (
                   <tr
                     key={p.id}
@@ -159,9 +183,64 @@ export default function PosPage() {
                     </td>
                   </tr>
                 )}
+              </tbody> */}
+              <tbody>
+                {paginatedProducts.map((p) => (
+                  <tr
+                    key={p.id}
+                    onClick={() => addToCart(p)}
+                    className="cursor-pointer hover:bg-gray-50"
+                  >
+                    <td className="p-3">{p.sku ?? p.id}</td>
+                    <td className="p-3">{p.name}</td>
+                    <td className="p-3">{p.stock}</td>
+                    <td className="p-3">Rp {p.price.toLocaleString()}</td>
+                  </tr>
+                ))}
+
+                {paginatedProducts.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="p-4 text-center text-gray-500">
+                      Tidak ada produk.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+                {/* PAGINATION */}
+          {totalPage > 1 && (
+            <div className="flex justify-start gap-1 mt-2">
+              <button
+                className="rounded border px-3 py-1 text-sm"
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+              >
+                «
+              </button>
+
+              {Array.from({ length: totalPage }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage(i + 1)}
+                  className={`rounded border px-3 py-1 text-sm ${
+                    page === i + 1
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                className="rounded border px-3 py-1 text-sm"
+                disabled={page === totalPage}
+                onClick={() => setPage(page + 1)}
+              >
+                »
+              </button>
+            </div>
+          )}
         </section>
 
         {/* Cart (kanan) */}

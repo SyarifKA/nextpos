@@ -11,133 +11,159 @@ interface InputProps {
   label: string;
   placeholder: string;
   value: string;
+  type?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const InputField: React.FC<InputProps> = ({ label, value, onChange, placeholder }) => {
+const InputField: React.FC<InputProps> = ({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}) => {
   return (
     <div className="flex flex-col w-full gap-2">
       <label className="font-medium text-gray-700">{label}</label>
       <input
-        type="text"
+        type={type}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
         className="
-          mt-1 px-4 py-3 border border-gray-300 rounded-lg 
+          px-4 py-3 border border-gray-300 rounded-lg
           placeholder-gray-400 text-md font-medium
-          focus:outline-none focus:ring-2 focus:ring-purple-400
+          focus:outline-none focus:ring-2 focus:ring-blue-500
         "
       />
     </div>
   );
 };
 
-interface ModalContentProps {
-  onClose: () => void;
-  onSubmit: (data: { name: string; phone: string; email: string; company: string }) => void;
-  initialData: any;
+interface ProductForm {
+  sku: string;
+  name: string;
+  price: string;
+  stock: string;
+  expired: string;
+  supplier: string;
 }
 
-const ModalContent: React.FC<ModalContentProps> = ({ onClose, onSubmit, initialData }) => {
-  const [local, setLocal] = React.useState({
-    name: "",
-    phone: "",
-    email: "",
-    company: "",
-  });
+interface ModalContentProps {
+  onClose: () => void;
+  onSubmit: (data: ProductForm) => void;
+}
 
-  useEffect(() => {
-    if (initialData) {
-      setLocal({
-        name: initialData.name || "",
-        phone: initialData.phone || "",
-        email: initialData.email || "",
-        company: initialData.company || "",
-      });
-    }
-  }, [initialData]);
+const ModalContent: React.FC<ModalContentProps> = ({ onClose, onSubmit }) => {
+  const [local, setLocal] = React.useState<ProductForm>({
+    sku: "",
+    name: "",
+    price: "",
+    stock: "",
+    expired: "",
+    supplier: "",
+  });
 
   return (
     <div className="flex flex-col w-full p-6 text-start">
-      <h2 className="text-2xl font-semibold text-primary">Edit Contact</h2>
+      <h2 className="text-2xl font-semibold text-gray-800">
+        Add New Product
+      </h2>
       <p className="text-gray-600 text-md mt-1">
-        Update the information for {local.name}
+        Masukkan informasi produk untuk ditambahkan ke sistem.
       </p>
 
-      <div className="mt-6 flex flex-col gap-4">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField
-          label="Name"
+          label="SKU"
+          value={local.sku}
+          placeholder="Contoh: SKU-001"
+          onChange={(e) => setLocal((s) => ({ ...s, sku: e.target.value }))}
+        />
+
+        <InputField
+          label="Nama Produk"
           value={local.name}
+          placeholder="Nama produk"
           onChange={(e) => setLocal((s) => ({ ...s, name: e.target.value }))}
-          placeholder="Enter name"
         />
 
         <InputField
-          label="Phone Number"
-          value={local.phone}
-          onChange={(e) => setLocal((s) => ({ ...s, phone: e.target.value }))}
-          placeholder="Enter phone number"
+          label="Harga"
+          type="number"
+          value={local.price}
+          placeholder="Contoh: 15000"
+          onChange={(e) => setLocal((s) => ({ ...s, price: e.target.value }))}
         />
 
         <InputField
-          label="Email"
-          value={local.email}
-          onChange={(e) => setLocal((s) => ({ ...s, email: e.target.value }))}
-          placeholder="Enter email"
+          label="Quantity"
+          type="number"
+          value={local.stock}
+          placeholder="Jumlah stok"
+          onChange={(e) => setLocal((s) => ({ ...s, stock: e.target.value }))}
         />
 
         <InputField
-          label="Company"
-          value={local.company}
-          onChange={(e) => setLocal((s) => ({ ...s, company: e.target.value }))}
-          placeholder="Enter company"
+          label="Expired Date"
+          type="date"
+          value={local.expired}
+          placeholder=""
+          onChange={(e) => setLocal((s) => ({ ...s, expired: e.target.value }))}
+        />
+
+        <InputField
+          label="Supplier"
+          value={local.supplier}
+          placeholder="Nama supplier"
+          onChange={(e) =>
+            setLocal((s) => ({ ...s, supplier: e.target.value }))
+          }
         />
       </div>
 
       <div className="flex justify-end gap-3 mt-8 font-medium">
         <button
           onClick={onClose}
-          className="px-5 py-4 rounded-lg bg-gray-200 text-gray-700"
+          className="px-5 py-3 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
         >
           Cancel
         </button>
 
         <button
           onClick={() => onSubmit(local)}
-          className="px-6 py-4 rounded-lg bg-primary text-white"
+          className="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
         >
-          Update Contact
+          Save Product
         </button>
       </div>
     </div>
   );
 };
 
-interface EditContactModalProps {
+interface AddProductModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  initialData: any;
-  index: number;
 }
 
-const EditContactModal: React.FC<EditContactModalProps> = ({
+const AddProductModal: React.FC<AddProductModalProps> = ({
   open,
   onClose,
   onSuccess,
-  initialData,
-  index,
 }) => {
   const reactRootRef = useRef<Root | null>(null);
 
-  const handleSubmit = async (data: { name: string; phone: string; email: string; company: string }) => {
-    const res = await fetch("/api/contact", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
+  const handleSubmit = async (data: ProductForm) => {
+    const res = await fetch("/api/product", {
+      method: "POST",
       body: JSON.stringify({
-        index,
-        updatedData: data,
+        sku: data.sku,
+        name: data.name,
+        price: Number(data.price),
+        qty: Number(data.stock),
+        expired: data.expired,
+        supplier: data.supplier,
       }),
     });
 
@@ -148,14 +174,14 @@ const EditContactModal: React.FC<EditContactModalProps> = ({
 
       MySwal.fire({
         icon: "success",
-        title: "Contact updated!",
-        timer: 1200, // <-- WAJIB ADA
+        title: "Product added!",
+        timer: 1200,
         showConfirmButton: false,
       });
     } else {
       MySwal.fire({
         icon: "error",
-        title: "Failed to update contact",
+        title: "Failed to add product",
         timer: 1400,
         showConfirmButton: false,
       });
@@ -169,7 +195,7 @@ const EditContactModal: React.FC<EditContactModalProps> = ({
       html: `<div id="react-swal-container"></div>`,
       showConfirmButton: false,
       allowOutsideClick: true,
-      width: "600px",
+      width: "680px",
       padding: 0,
 
       didOpen: () => {
@@ -183,22 +209,21 @@ const EditContactModal: React.FC<EditContactModalProps> = ({
                 onClose();
               }}
               onSubmit={handleSubmit}
-              initialData={initialData}
             />
           );
         }
       },
-
       willClose: () => {
         if (reactRootRef.current) {
           reactRootRef.current.unmount();
           reactRootRef.current = null;
         }
+        onClose()
       },
     });
-  }, [open, initialData]);
+  }, [open]);
 
   return null;
 };
 
-export default EditContactModal;
+export default AddProductModal;

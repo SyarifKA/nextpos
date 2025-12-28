@@ -8,6 +8,7 @@ import {
   NotebookTabs,
   Building2,
   Menu,
+  Grid2x2Plus,
   Power,
   Home,
   Mail
@@ -53,6 +54,16 @@ const menu: MenuSection[] = [
         children: [
           { name: "penjualan", path: "/sales" },
         ],
+      },
+    ],
+  },
+  {
+    item: "Admin",
+    children: [
+      {
+        name: "Manajemen Produk",
+        icon: Grid2x2Plus,
+        path: "/product"
       },
     ],
   },
