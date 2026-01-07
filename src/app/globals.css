@@ -1,14 +1,19 @@
 @import "tailwindcss";
 
+/* =========================
+   🎨 CSS VARIABLES
+   ========================= */
 :root {
   --background: #f9fafb;
   --foreground: #171717;
+
   /* --- PRIMARY --- */
-  /* --primary: #0072c3; */
-  --primary: #5479EE;
+  --primary: #5479ee;
+
   /* --- SECONDARY --- */
-  --secondary: #DEDEFB;
+  --secondary: #dedefb;
   --secondary00: #ffe3c4;
+
   /* --- NEUTRAL --- */
   --white: #ffffff;
   --gray00: #fafafa;
@@ -19,15 +24,19 @@
   --gray05: #ffffff;
   --gray06: #666666;
   --black: #292d32;
+
   /* --- RED --- */
   --red00: #fff0f0;
   --red05: #f20d0d;
+
   /* --- YELLOW --- */
   --yellow00: #fff9f0;
   --yellow: #f2aa0d;
+
   /* --- GREEN --- */
   --green00: #e9ffeb;
   --green05: #32a03b;
+
   /* --- BLUE --- */
   --blue00: #ffffff;
   --blue01: #e9f6ff;
@@ -35,50 +44,16 @@
   --blue03: #89cbf9;
 }
 
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-SemiBold.woff2") format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Poppins";
-  src: url("/fonts/Poppins-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* 🌙 Mode gelap */
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --primary: #3b82f6; 
-    --secondary: #111827;
-  }
-} */
-
-/* 🎨 Mapping ke Tailwind Theme */
+/* =========================
+   🎨 Tailwind Theme Mapping
+   ========================= */
 @theme inline {
-  /* --- PRIMARY --- */
+  /* --- COLORS --- */
   --color-primary: var(--primary);
 
-  /* --- SECONDARY --- */
   --color-secondary: var(--secondary);
   --color-secondary00: var(--secondary00);
 
-  /* --- NEUTRAL --- */
   --color-white: var(--white);
   --color-gray00: var(--gray00);
   --color-gray01: var(--gray01);
@@ -89,36 +64,39 @@
   --color-gray06: var(--gray06);
   --color-black: var(--black);
 
-  /* --- RED --- */
   --color-red00: var(--red00);
   --color-red05: var(--red05);
 
-  /* --- YELLOW --- */
   --color-yellow00: var(--yellow00);
   --color-yellow: var(--yellow);
 
-  /* --- GREEN --- */
   --color-green00: var(--green00);
   --color-green05: var(--green05);
 
-  /* --- BLUE --- */
   --color-blue00: var(--blue00);
   --color-blue01: var(--blue01);
   --color-blue02: var(--blue02);
   --color-blue03: var(--blue03);
 
-  /* --- FONTS --- */
-  --font-poppins: Poppins, system-ui, sans-serif;
+  /* --- FONTS (Next Font) --- */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
-/* 📄 Global body style */
+/* =========================
+   📄 Global Body
+   ========================= */
+html,
 body {
+  font-family: var(--font-poppins) !important;
   background: var(--color-gray00);
   color: var(--color-black);
-  font-family: var(--font-poppins);
+  font-family: var(--font-sans);
 }
 
-/* 🔹 Tambahan custom scroll */
+/* =========================
+   🔹 Scrollbar
+   ========================= */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -130,16 +108,16 @@ body {
 
 .hide-scrollbar {
   -ms-overflow-style: none;
-  /* IE and Edge */
   scrollbar-width: none;
-  /* Firefox */
 }
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
-  /* Chrome, Safari */
 }
 
+/* =========================
+   🔹 Utilities
+   ========================= */
 .chevron {
   transition: transform 0.5s ease;
 }

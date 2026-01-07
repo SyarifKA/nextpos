@@ -5,8 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   ChevronRight,
   BookOpen,
-  NotebookTabs,
-  Building2,
+  Truck,
   Menu,
   Grid2x2Plus,
   Power,
@@ -61,12 +60,17 @@ const menu: MenuSection[] = [
     item: "Admin",
     children: [
       {
-        name: "Manajemen Produk",
+        name: "Produk",
         icon: Grid2x2Plus,
         path: "/product"
       },
-    ],
-  },
+      {
+        name: "Supplier",
+        icon: Truck,
+        path: "/supplier"
+      },
+    ]
+    },
   // {
   //   item: "App",
   //   children: [
@@ -204,7 +208,7 @@ export default function Sidebar() {
           height={40}
           className="rounded-full object-cover bg-white"
         />
-        <div className="flex flex-col items-start w-full max-w-[150px]">
+        <div className="flex flex-col items-start w-full max-w-37.5">
           <span className="font-semibold text-black truncate max-w-26">
             Ruben Amorim
           </span>

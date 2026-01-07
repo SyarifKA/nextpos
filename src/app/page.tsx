@@ -11,5 +11,5 @@ export default async function HomePage() {
   // }
 
   // kalau sudah login → ke dashboard
-  redirect("/sales");
+  redirect("/login");
 }
