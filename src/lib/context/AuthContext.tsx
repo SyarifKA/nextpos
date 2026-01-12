@@ -48,33 +48,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Call actual login API
-      const loginRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const loginRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       const json = await loginRes.json();
-      
-      if (!loginRes.ok || !json.success) {
-        console.error('Login failed:', json);
+
+      // validasi response sesuai API kamu
+      if (!loginRes.ok || json.status !== "OK001") {
+        console.error("Login failed:", json);
         return false;
       }
-      console.log('login result', json)
-      const accessToken = json.data.access_token;
-      
+
+      const accessToken = json?.data?.token?.token;
+
+      if (!accessToken) {
+        console.error("Token not found in response:", json);
+        return false;
+      }
+
       cookieUtils.setAuthToken(accessToken);
-      
       setToken(accessToken);
       setIsAuthenticated(true);
-      
+
       return true;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       return false;
     }
   };
+
 
   const getToken = async (): Promise<string> => {
     if (token) {
@@ -96,35 +104,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(false);
   };
 
-    const resetPass = async (email: string, otp_type: string, code: string): Promise<boolean> => {
-    try {
-      // Call actual login API
-      const resetRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp/verify`, {
+ const resetPass = async (  email: string,  otp_type: string,  code: string): Promise<boolean> => {
+  try {
+    const resetRes = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/otp/verify`,
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp_type, code}),
-      });
-
-      const json = await resetRes.json();
-      
-      if (!resetRes.ok || !json.success) {
-        console.error('reset password failed:', json);
-        return false;
+        body: JSON.stringify({ email, otp_type, code }),
       }
-      console.log('reset password result', json)
-      const accessToken = json.data.access_token;
-      
-      cookieUtils.setAuthToken(accessToken);
-      
-      setToken(accessToken);
-      setIsAuthenticated(true);
-      
-      return true;
-    } catch (error) {
-      console.error('Login failed:', error);
+    );
+
+    const json = await resetRes.json();
+
+    if (!resetRes.ok || json.status !== "OK001") {
+      console.error("Reset password failed:", json);
       return false;
     }
-  };
+
+    const accessToken = json?.data?.token?.token;
+
+    if (!accessToken) {
+      console.error("Token not found in response:", json);
+      return false;
+    }
+
+    cookieUtils.setAuthToken(accessToken);
+    setToken(accessToken);
+    setIsAuthenticated(true);
+
+    return true;
+  } catch (error) {
+    console.error("Reset password failed:", error);
+    return false;
+  }
+};
+
   
   return (
     <AuthContext.Provider value={{ isAuthenticated, token, login, logout, loading, getToken, resetPass }}>

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-// import { useAuth } from "@/lib/context/AuthContext";
+import { useAuth } from "@/lib/context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,28 +13,28 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  // const { login } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   setError("");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-  //   try {
-  //     const success = await login(email, password);
-  //     if (success) {
-  //       // Redirect to home page after successful login
-  //       router.push("/");
-  //     } else {
-  //       setError("Invalid email or password. Please try again.");
-  //     }
-  //   } catch (err) {
-  //     setError("An error occurred. Please try again.");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+    try {
+      const success = await login(email, password);
+      if (success) {
+        // Redirect to home page after successful login
+        router.push("/sales");
+      } else {
+        setError("Invalid email or password. Please try again.");
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen grid grid-cols-1 md:grid-cols-3 bg-gray-50">
@@ -64,7 +64,9 @@ export default function LoginPage() {
 
         <p className="mt-2 text-sm text-gray-500 text-center">Login ke akun Anda</p>
 
-        <form className="mt-6 space-y-4" >
+        <form
+          onSubmit={handleSubmit}
+          className="mt-6 space-y-4" >
         {/* <form className="mt-6 space-y-4" onSubmit={handleSubmit}> */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
