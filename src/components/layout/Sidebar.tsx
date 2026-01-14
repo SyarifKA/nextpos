@@ -124,7 +124,7 @@ export default function Sidebar() {
           height={200}
         /> */}
         <span className="text-3xl text-primary font-semibold text-center">NextPOS</span>
-        <Menu className="w-6 stroke-black stroke-[1.5]" />
+        {/* <Menu className="w-6 stroke-black stroke-[1.5]" /> */}
       </div>
 
       <nav className="flex flex-1 flex-col gap-5">

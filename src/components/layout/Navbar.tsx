@@ -11,9 +11,9 @@ export default function Navbar() {
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
         </button>
 
-        <button>
+        {/* <button>
           <Moon className="w-8 h-8"/>
-        </button>
+        </button> */}
 
         <div className="flex items-center space-x-2">
           <Image
@@ -21,7 +21,7 @@ export default function Navbar() {
             alt="User Avatar"
             width={40}
             height={40}
-            className="rounded-full object-cover"
+            className="rounded-full object-cover bg-white"
           />
         </div>
       </div>

@@ -132,7 +132,7 @@ export default function Product() {
       {/* TABLE */}
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-100 text-gray-700">
+          <thead className="bg-primary text-white">
             <tr>
               <th className="px-4 py-3 text-left">SKU</th>
               <th className="px-4 py-3 text-left">Nama Produk</th>

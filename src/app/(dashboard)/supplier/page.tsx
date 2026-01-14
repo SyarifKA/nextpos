@@ -104,14 +104,14 @@ export default function Product() {
           onClick={() => setOpenAdd(true)}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
         >
-          + Tambah Produk
+          + Tambah Supplier
         </button>
       </div>
 
       {/* TABLE */}
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-100 text-gray-700">
+          <thead className="bg-primary text-white">
             <tr>
               <th className="px-4 py-3 text-left">SKU</th>
               <th className="px-4 py-3 text-left">Nama Produk</th>
