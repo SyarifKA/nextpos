@@ -8,3 +8,9 @@ export type TypeProduct = {
   supplier: string;
   year: string;
 };
+
+export type TypeCustomer = {
+  id: string;
+  name: string;
+  createdAt: string;
+}

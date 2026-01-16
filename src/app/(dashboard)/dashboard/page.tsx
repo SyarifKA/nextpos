@@ -10,6 +10,8 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
+import { Users } from "lucide-react"
+
 // ==================
 // Dummy data
 // ==================
@@ -61,29 +63,35 @@ export default function DashboardPOS() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="card bg-[#F5FBE6] rounded-md shadow">
           <div className="card-body p-4">
+            <div className="flex gap-2 items-center">
+              <p className="text-2xl font-bold">3</p>
+              <Users />
+            </div>
             <p className="text-sm opacity-70">Transaksi Hari Ini</p>
-            <p className="text-2xl font-bold">3</p>
           </div>
         </div>
 
         <div className="card bg-[#F5FBE6] rounded-md shadow">
           <div className="card-body p-4">
-            <p className="text-sm opacity-70">Jumlah Customer</p>
-            <p className="text-2xl font-bold">128</p>
+            <div className="flex gap-2 items-center">
+              <p className="text-2xl font-bold">365</p>
+              <Users />
+            </div>
+            <p className="text-sm opacity-70">Customer</p>
           </div>
         </div>
 
         <div className="card bg-[#F5FBE6] rounded-md shadow">
           <div className="card-body p-4">
-            <p className="text-sm opacity-70">Pendapatan</p>
             <p className="text-2xl font-bold">Rp 240.000</p>
+            <p className="text-sm opacity-70">Pendapatan Hari ini</p>
           </div>
         </div>
 
         <div className="card bg-[#F5FBE6] rounded-md shadow">
           <div className="card-body p-4">
-            <p className="text-sm opacity-70">Pengeluaran Tahun Ini</p>
             <p className="text-2xl font-bold">Rp 12.500.000</p>
+            <p className="text-sm opacity-70">Pengeluaran Tahun Ini</p>
           </div>
         </div>
       </div>

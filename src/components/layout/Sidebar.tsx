@@ -6,7 +6,7 @@ import {
   ChevronRight,
   BookOpen,
   Truck,
-  Menu,
+  BookUser,
   Grid2x2Plus,
   Power,
   Home,
@@ -53,6 +53,11 @@ const menu: MenuSection[] = [
         children: [
           { name: "penjualan", path: "/sales" },
         ],
+      },
+      {
+        name: "Customer",
+        icon: BookUser,
+        path: "/customer"
       },
     ],
   },
@@ -209,15 +214,15 @@ export default function Sidebar() {
           className="rounded-full object-cover bg-white"
         />
         <div className="flex flex-col items-start w-full max-w-37.5">
-          <span className="font-semibold text-black truncate max-w-26">
-            Ruben Amorim
+          <span className="font-semibold text-black truncate max-w-30">
+            Suhaimi
           </span>
 
           <div className="flex gap-2 text-sm items-center">
-            <span className="truncate max-w-20">
-              Administrator
+            <span className="truncate max-w-26">
+              Admin
             </span>
-            <span className="bg-gray-300 px-1 rounded-md">+ 2</span>
+            {/* <span className="bg-gray-300 px-1 rounded-md">+ 2</span> */}
           </div>
         </div>
         <Power className="text-primary"/>

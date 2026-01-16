@@ -1,5 +1,5 @@
 // src/data/dummy.ts
-import { TypeProduct } from "@/models/type";
+import { TypeCustomer, TypeProduct } from "@/models/type";
 
 export const products: TypeProduct[] = [
   { id: 1, sku: "P-001", name: "Aqua Botol 600ml", price: 5000, stock: 50, expired: "2026-06-01", supplier: "Supplier A", year:"2025" },
@@ -23,3 +23,12 @@ export const products: TypeProduct[] = [
   { id: 19, sku: "P-019", name: "Susu UHT 200ml", price: 8000, stock: 30, expired: "2026-03-20", supplier: "Supplier S", year:"2025" },
   { id: 20, sku: "P-020", name: "Roti Tawar", price: 12000, stock: 10, expired: "2025-12-05", supplier: "Supplier A", year:"2025" },
 ];
+
+export const Customers: TypeCustomer[] = [
+  {id: "1", name: "wawan", createdAt: "2025-12-15"},
+  {id: "2", name: "asep", createdAt: "2026-01-15"},
+  {id: "3", name: "kevin", createdAt: "2025-12-18"},
+  {id: "4", name: "doni", createdAt: "2025-07-10"},
+  {id: "5", name: "cecep", createdAt: "2025-07-24"},
+  {id: "6", name: "susanto", createdAt: "2026-01-12"},
+]
