@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { TypeCustomer, TypeProduct } from "@/models/type";
+import AddCustomerModal from "@/components/modal/customer/AddCustomer";
+import Link from "next/link";
 
 export default function CustomerPage(){
     const [customers, setCustomers] = useState<TypeCustomer[]>([]);
@@ -23,6 +25,7 @@ export default function CustomerPage(){
           setLoading(true);
           const res = await fetch("/api/customer");
           const json = await res.json();
+          console.log(json)
           setCustomers(json.data || []);
         } catch (error) {
           console.error("Failed fetch Customers", error);
@@ -34,25 +37,7 @@ export default function CustomerPage(){
       useEffect(() => {
         fetchCustomers();
       }, []);
-    
-      const filteredData = useMemo(() => {
-        return customers.filter((item) => {
-          const matchSearch =
-            item.name.toLowerCase().includes(search.toLowerCase()) ||
-            item.id.toLowerCase().includes(search.toLowerCase());
-    
-          const matchSupplier = supplier ? item.name === supplier : true;
-    
-          return matchSearch && matchSupplier;
-        });
-      }, [customers, search, supplier]);
-    
-      const totalPage = Math.ceil(filteredData.length / perPage);
-    
-      const paginatedData = filteredData.slice(
-        (page - 1) * perPage,
-        page * perPage
-      );
+      console.log(customers)
     return (
         <div className="p-4 md:p-6 space-y-4">
       {/* HEADER */}
@@ -92,6 +77,7 @@ export default function CustomerPage(){
             <tr>
               <th className="px-4 py-3 text-left">ID</th>
               <th className="px-4 py-3 text-left">Nama Pelanggan</th>
+              <th className="px-4 py-3 text-left">Nomor telepon</th>
               <th className="px-4 py-3 text-left">Tanggal registrasi</th>
               <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
@@ -106,23 +92,35 @@ export default function CustomerPage(){
               </tr>
             )}
 
-            {!loading && paginatedData.length === 0 && (
+            {!loading && customers.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
                   Data tidak ditemukan
                 </td>
               </tr>
             )}
-
-            {paginatedData.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
+            {/* {console.log(customers)} */}
+            {customers.map((item, index) => (
+              <tr key={index} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono">{item.id}</td>
                 <td className="px-4 py-3">{item.name}</td>
+                <td className="px-4 py-3">{item.phone_number}</td>
                 <td className="px-4 py-3">
-                  {/* Rp {item.price.toLocaleString("id-ID")} */}
-                  {item.createdAt}
+                  {new Date(item.created_at).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit",
+                  })}
                 </td>
-                <td className="w-1/5 text-center"><button className="bg-green-400 hover:bg-green-500 cursor-pointer text-black px-4 py-2 rounded-md">detail</button></td>
+                  <td className="w-1/5 text-center">
+
+                <Link
+                  href={`/customer/${item.id}`}
+                  className="bg-green-400 hover:bg-green-500 cursor-pointer text-black px-4 py-2 rounded-md"
+                  >
+                    Detail
+                  </Link>
+                  </td>
               </tr>
             ))}
           </tbody>
@@ -130,7 +128,7 @@ export default function CustomerPage(){
       </div>
 
       {/* PAGINATION */}
-      {totalPage > 1 && (
+      {/* {totalPage > 1 && (
         <div className="flex justify-end gap-1">
           <button
             className="rounded border px-3 py-1 text-sm"
@@ -162,7 +160,26 @@ export default function CustomerPage(){
             »
           </button>
         </div>
-      )}
+      )} */}
+
+            {/* MODAL */}
+      <AddCustomerModal
+        open={openAdd}
+        onClose={() => setOpenAdd(false)}
+        onSuccess={fetchCustomers}
+      />
+      {/* <EditCustomerModal
+        open={openEdit}
+        Customer={selectedCustomer}
+        onClose={() => setOpenEdit(false)}
+        onSuccess={fetchCustomers}
+        />
+      <DeleteCustomerModal
+        open={openDelete}
+        Customer={selectedCustomer}
+        onClose={() => setOpenDelete(false)}
+        onSuccess={fetchCustomers}
+        /> */}
     </div>
     )
 }

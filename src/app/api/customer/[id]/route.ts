@@ -1,88 +1,124 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Customers } from "@/data/dummy";
-import { TypeCustomer } from "@/models/type";
+import { cookies } from "next/headers";
 
-type Context = {
-  params: Promise<{
-    id: string;
-  }>;
-};
+const API_SERVER = process.env.NEXT_PUBLIC_API_URL;
 
-// GET /api/product/[id]
+// ========================
+// GET /api/customer/[id]
+// ========================
 export async function GET(
   _req: NextRequest,
-  { params }: Context
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
-//   const customerId = id;
+  try {
+    // const token = cookies().get("access_token")?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
 
-  const customer = Customers.find((p) => p.id === id);
+    if (!token) {
+      return NextResponse.json(
+        { status: "UNAUTHORIZED", message: "Token not found" },
+        { status: 401 }
+      );
+    }
 
-  if (!customer) {
+    const res = await fetch(`${API_SERVER}customer/${params.id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return NextResponse.json(data, { status: res.status });
+    }
+
+    return NextResponse.json(data);
+  } catch (error) {
     return NextResponse.json(
-      { success: false, message: "customer not found" },
-      { status: 404 }
+      { status: "ER500", statusMessage: "API server unreachable" },
+      { status: 500 }
     );
   }
-
-  return NextResponse.json({
-    success: true,
-    data: customer,
-  });
 }
 
+// ========================
 // PUT /api/customer/[id]
+// ========================
 export async function PUT(
   req: NextRequest,
-  { params }: Context
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
-  const customerId = Number(id);
+  try {
+    // const token = cookies().get("access_token")?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
 
-  const body = (await req.json()) as Partial<TypeCustomer>;
+    if (!token) {
+      return NextResponse.json(
+        { status: "UNAUTHORIZED", message: "Token not found" },
+        { status: 401 }
+      );
+    }
 
-  const index = Customers.findIndex((p) => p.id === id);
+    const body = await req.json();
 
-  if (index === -1) {
+    const res = await fetch(`${API_SERVER}customer/${params.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    return NextResponse.json(data, { status: res.status });
+  } catch (error) {
     return NextResponse.json(
-      { success: false, message: "customer not found" },
-      { status: 404 }
+      { status: "ER500", statusMessage: "API server unreachable" },
+      { status: 500 }
     );
   }
-
-  Customers[index] = {
-    ...Customers[index],
-    ...body,
-  };
-
-  return NextResponse.json({
-    success: true,
-    data: Customers[index],
-  });
 }
 
+// ========================
 // DELETE /api/customer/[id]
+// ========================
 export async function DELETE(
   _req: NextRequest,
-  { params }: Context
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
-//   const customerId = Number(id);
+  try {
+    // const token = await cookies().get("access_token")?.value;
 
-  const index = Customers.findIndex((p) => p.id === id);
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
 
-  if (index === -1) {
+    if (!token) {
+      return NextResponse.json(
+        { status: "UNAUTHORIZED", message: "Token not found" },
+        { status: 401 }
+      );
+    }
+
+    const res = await fetch(`${API_SERVER}customer/${params.id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    return NextResponse.json(data, { status: res.status });
+  } catch (error) {
     return NextResponse.json(
-      { success: false, message: "customer not found" },
-      { status: 404 }
+      { status: "ER500", statusMessage: "API server unreachable" },
+      { status: 500 }
     );
   }
-
-  const deleted = Customers.splice(index, 1);
-
-  return NextResponse.json({
-    success: true,
-    message: "customer deleted",
-    data: deleted[0],
-  });
 }

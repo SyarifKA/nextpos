@@ -1,30 +1,25 @@
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
-export const AUTH_COOKIE_NAME = 'access_token';
+export const AUTH_COOKIE_NAME = "access_token";
 
 export const cookieUtils = {
-  // Set authentication token
   setAuthToken: (token: string) => {
     Cookies.set(AUTH_COOKIE_NAME, token, {
-      expires: 1/24, // 1 hour (1/24 of a day)
-      secure: process.env.NODE_ENV === 'production', // Only over HTTPS in production
-      sameSite: 'strict' // CSRF protection
+      expires: 1 / 24,
+      path: "/",
+      sameSite: "lax",
     });
   },
 
-  // Get authentication token
-  getAuthToken: (): string | undefined => {
+  getAuthToken: () => {
     return Cookies.get(AUTH_COOKIE_NAME);
   },
 
-  // Remove authentication token
   removeAuthToken: () => {
-    Cookies.remove(AUTH_COOKIE_NAME);
+    Cookies.remove(AUTH_COOKIE_NAME, { path: "/" });
   },
 
-  // Check if user has valid token
-  hasAuthToken: (): boolean => {
-    const token = Cookies.get(AUTH_COOKIE_NAME);
-    return Boolean(token && token !== 'dummy_token');
-  }
+  hasAuthToken: () => {
+    return Boolean(Cookies.get(AUTH_COOKIE_NAME));
+  },
 };

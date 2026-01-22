@@ -12,5 +12,6 @@ export type TypeProduct = {
 export type TypeCustomer = {
   id: string;
   name: string;
-  createdAt: string;
+  phone_number: string;
+  created_at: string;
 }

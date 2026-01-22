@@ -39,7 +39,7 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen grid grid-cols-1 md:grid-cols-3 bg-gray-50">
       {/* Left Section */}
-      <section className="hidden md:flex md:col-span-2 items-center justify-center bg-blue03">
+      {/* <section className="hidden md:flex md:col-span-2 items-center justify-center bg-blue03"> */}
         {/* <div className="p-10">
           <Image
               src="/assets/logo3d.png"
@@ -48,7 +48,13 @@ export default function LoginPage() {
               height={400}
             />
         </div> */}
+      {/* </section> */}
+      <section
+        className="hidden md:flex md:col-span-2 items-center justify-center bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/assets/bg-login.jpg')" }}
+      >
       </section>
+
 
       {/* Right Section */}
       <section className="flex flex-col md:col-span-1 justify-center px-8 md:px-20 py-10 bg-white">

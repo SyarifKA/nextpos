@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import AddProductModal from "@/components/modal/AddProduct";
-import EditProductModal from "@/components/modal/EditProduct";
-import DeleteProductModal from "@/components/modal/DeleteProduct";
+import AddProductModal from "@/components/modal/product/AddProduct";
+import EditProductModal from "@/components/modal/product/EditProduct";
+import DeleteProductModal from "@/components/modal/product/DeleteProduct";
 import { TypeProduct } from "@/models/type";
 
 export default function Product() {
