@@ -3,15 +3,12 @@ import { cookies } from "next/headers";
 
 const API_SERVER = process.env.NEXT_PUBLIC_API_URL;
 
-// ========================
-// GET /api/customer/[id]
-// ========================
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // const token = cookies().get("access_token")?.value;
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
 
@@ -22,7 +19,7 @@ export async function GET(
       );
     }
 
-    const res = await fetch(`${API_SERVER}customer/${params.id}`, {
+    const res = await fetch(`${API_SERVER}customer/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -36,7 +33,7 @@ export async function GET(
     }
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { status: "ER500", statusMessage: "API server unreachable" },
       { status: 500 }
@@ -44,15 +41,12 @@ export async function GET(
   }
 }
 
-// ========================
-// PUT /api/customer/[id]
-// ========================
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // const token = cookies().get("access_token")?.value;
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
 
@@ -65,7 +59,7 @@ export async function PUT(
 
     const body = await req.json();
 
-    const res = await fetch(`${API_SERVER}customer/${params.id}`, {
+    const res = await fetch(`${API_SERVER}customer/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -75,9 +69,8 @@ export async function PUT(
     });
 
     const data = await res.json();
-
     return NextResponse.json(data, { status: res.status });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { status: "ER500", statusMessage: "API server unreachable" },
       { status: 500 }
@@ -85,16 +78,12 @@ export async function PUT(
   }
 }
 
-// ========================
-// DELETE /api/customer/[id]
-// ========================
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // const token = await cookies().get("access_token")?.value;
-
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
 
@@ -105,7 +94,7 @@ export async function DELETE(
       );
     }
 
-    const res = await fetch(`${API_SERVER}customer/${params.id}`, {
+    const res = await fetch(`${API_SERVER}customer/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -113,9 +102,8 @@ export async function DELETE(
     });
 
     const data = await res.json();
-
     return NextResponse.json(data, { status: res.status });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { status: "ER500", statusMessage: "API server unreachable" },
       { status: 500 }

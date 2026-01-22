@@ -25,10 +25,10 @@ export const products: TypeProduct[] = [
 ];
 
 export const Customers: TypeCustomer[] = [
-  {id: "1", name: "wawan", createdAt: "2025-12-15"},
-  {id: "2", name: "asep", createdAt: "2026-01-15"},
-  {id: "3", name: "kevin", createdAt: "2025-12-18"},
-  {id: "4", name: "doni", createdAt: "2025-07-10"},
-  {id: "5", name: "cecep", createdAt: "2025-07-24"},
-  {id: "6", name: "susanto", createdAt: "2026-01-12"},
+  {id: "1", name: "wawan", phone_number: "089999999", created_at: "2025-12-15"},
+  {id: "2", name: "asep", phone_number: "089999999", created_at: "2026-01-15"},
+  {id: "3", name: "kevin", phone_number: "089999999", created_at: "2025-12-18"},
+  {id: "4", name: "doni", phone_number: "089999999", created_at: "2025-07-10"},
+  {id: "5", name: "cecep", phone_number: "089999999", created_at: "2025-07-24"},
+  {id: "6", name: "susanto", phone_number: "089999999", created_at: "2026-01-12"},
 ]
