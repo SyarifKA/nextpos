@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 
 const API_SERVER = process.env.NEXT_PUBLIC_API_URL;
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
@@ -15,7 +15,19 @@ export async function GET() {
       );
     }
 
-    const res = await fetch(`${API_SERVER}customer`, {
+    const { searchParams } = new URL(req.url);
+
+    const page = searchParams.get("page") || "1";
+    const limit = searchParams.get("limit") || "10";
+    const search = searchParams.get("search") || "";
+
+    const qs = new URLSearchParams({
+      page,
+      limit,
+      search,
+    }).toString();
+
+    const res = await fetch(`${API_SERVER}customer?${qs}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -24,7 +36,6 @@ export async function GET() {
 
     const data = await res.json();
 
-    // ⭐ PENTING
     if (!res.ok) {
       return NextResponse.json(data, { status: res.status });
     }
@@ -40,6 +51,7 @@ export async function GET() {
     );
   }
 }
+
 
 export async function POST(req: Request) {
   try {

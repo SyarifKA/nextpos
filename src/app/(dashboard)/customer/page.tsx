@@ -1,84 +1,227 @@
-"use client"
+// "use client"
 
-import { useEffect, useMemo, useState } from "react";
-import { TypeCustomer, TypeProduct } from "@/models/type";
+// import { useEffect, useMemo, useState } from "react";
+// import { TypeCustomer, TypeProduct } from "@/models/type";
+// import AddCustomerModal from "@/components/modal/customer/AddCustomer";
+// import Link from "next/link";
+
+// export default function CustomerPage(){
+//     const [customers, setCustomers] = useState<TypeCustomer[]>([]);
+//       const [loading, setLoading] = useState(true);
+//       const [search, setSearch] = useState("");
+//       const [supplier, setSupplier] = useState("");
+//       const [year, setYear] = useState("");
+//       const [page, setPage] = useState(1);
+//       const [openAdd, setOpenAdd] = useState(false);
+//       const [openEdit, setOpenEdit] = useState(false);
+//       const [selectedProduct, setSelectedProduct] = useState<TypeCustomer | null>(null);
+//       const [openDelete, setOpenDelete] = useState(false);
+    
+    
+//       const perPage = 5;
+    
+//       const fetchCustomers = async () => {
+//         try {
+//           setLoading(true);
+//           const res = await fetch("/api/customer");
+//           const json = await res.json();
+//           console.log(json)
+//           setCustomers(json.data || []);
+//         } catch (error) {
+//           console.error("Failed fetch Customers", error);
+//         } finally {
+//           setLoading(false);
+//         }
+//       };
+    
+//       useEffect(() => {
+//         fetchCustomers();
+//       }, []);
+//       console.log(customers)
+//     return (
+//         <div className="p-4 md:p-6 space-y-4">
+//       {/* HEADER */}
+//       <div>
+//         <h1 className="text-3xl font-semibold text-gray-800">
+//           Manajemen Pelanggan
+//         </h1>
+//       </div>
+
+//       {/* FILTER + ACTION */}
+//       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+//         <div className="flex flex-col gap-2 md:flex-row">
+//           <input
+//             type="text"
+//             placeholder="Search ID / Nama Pelanggan"
+//             className="w-full md:w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+//             value={search}
+//             onChange={(e) => {
+//               setPage(1);
+//               setSearch(e.target.value);
+//             }}
+//           />
+//         </div>
+
+//         <button
+//           onClick={() => setOpenAdd(true)}
+//           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
+//         >
+//           + Tambah Pelanggan
+//         </button>
+//       </div>
+
+//       {/* TABLE */}
+//       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+//         <table className="min-w-full text-sm">
+//           <thead className="bg-primary text-white">
+//             <tr>
+//               <th className="px-4 py-3 text-left">ID</th>
+//               <th className="px-4 py-3 text-left">Nama Pelanggan</th>
+//               <th className="px-4 py-3 text-left">Nomor telepon</th>
+//               <th className="px-4 py-3 text-left">Tanggal registrasi</th>
+//               <th className="px-4 py-3 text-center">Aksi</th>
+//             </tr>
+//           </thead>
+
+//           <tbody className="divide-y">
+//             {loading && (
+//               <tr>
+//                 <td colSpan={7} className="px-4 py-6 text-center">
+//                   Loading...
+//                 </td>
+//               </tr>
+//             )}
+
+//             {!loading && customers.length === 0 && (
+//               <tr>
+//                 <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
+//                   Data tidak ditemukan
+//                 </td>
+//               </tr>
+//             )}
+//             {/* {console.log(customers)} */}
+//             {customers.map((item, index) => (
+//               <tr key={index} className="hover:bg-gray-50">
+//                 <td className="px-4 py-3 font-mono">{item.id}</td>
+//                 <td className="px-4 py-3">{item.name}</td>
+//                 <td className="px-4 py-3">{item.phone_number}</td>
+//                 <td className="px-4 py-3">
+//                   {new Date(item.created_at).toLocaleDateString("id-ID", {
+//                     day: "2-digit",
+//                     month: "2-digit",
+//                     year: "2-digit",
+//                   })}
+//                 </td>
+//                   <td className="w-1/5 text-center">
+
+//                 <Link
+//                   href={`/customer/${item.id}`}
+//                   className="bg-green-400 hover:bg-green-500 cursor-pointer text-black px-4 py-2 rounded-md"
+//                   >
+//                     Detail
+//                   </Link>
+//                   </td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </table>
+//       </div>
+
+//       {/* PAGINATION */}
+
+//             {/* MODAL */}
+//       <AddCustomerModal
+//         open={openAdd}
+//         onClose={() => setOpenAdd(false)}
+//         onSuccess={fetchCustomers}
+//       />
+//     </div>
+//     )
+// }
+
+"use client";
+
+import { useEffect, useState } from "react";
+import { TypeCustomer } from "@/models/type";
 import AddCustomerModal from "@/components/modal/customer/AddCustomer";
 import Link from "next/link";
 
-export default function CustomerPage(){
-    const [customers, setCustomers] = useState<TypeCustomer[]>([]);
-      const [loading, setLoading] = useState(true);
-      const [search, setSearch] = useState("");
-      const [supplier, setSupplier] = useState("");
-      const [year, setYear] = useState("");
-      const [page, setPage] = useState(1);
-      const [openAdd, setOpenAdd] = useState(false);
-      const [openEdit, setOpenEdit] = useState(false);
-      const [selectedProduct, setSelectedProduct] = useState<TypeCustomer | null>(null);
-      const [openDelete, setOpenDelete] = useState(false);
-    
-    
-      const perPage = 5;
-    
-      const fetchCustomers = async () => {
-        try {
-          setLoading(true);
-          const res = await fetch("/api/customer");
-          const json = await res.json();
-          console.log(json)
-          setCustomers(json.data || []);
-        } catch (error) {
-          console.error("Failed fetch Customers", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-    
-      useEffect(() => {
-        fetchCustomers();
-      }, []);
-      console.log(customers)
-    return (
-        <div className="p-4 md:p-6 space-y-4">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-3xl font-semibold text-gray-800">
-          Manajemen Pelanggan
-        </h1>
-      </div>
+type Pagination = {
+  page: number;
+  limit: number;
+  total_data: number;
+  total_pages: number;
+};
 
-      {/* FILTER + ACTION */}
+export default function CustomerPage() {
+  const [customers, setCustomers] = useState<TypeCustomer[]>([]);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const limit = 5;
+
+  const [openAdd, setOpenAdd] = useState(false);
+
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(
+        `/api/customer?page=${page}&limit=${limit}&search=${search}`
+      );
+      const json = await res.json();
+
+      setCustomers(json.data || []);
+      setPagination(json.pagination);
+    } catch (error) {
+      console.error("Failed fetch Customers", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [page, search]);
+
+  return (
+    <div className="p-4 md:p-6 space-y-4">
+      {/* HEADER */}
+      <h1 className="text-3xl font-semibold text-gray-800">
+        Manajemen Pelanggan
+      </h1>
+
+      {/* SEARCH + ACTION */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-2 md:flex-row">
-          <input
-            type="text"
-            placeholder="Search ID / Nama Pelanggan"
-            className="w-full md:w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={search}
-            onChange={(e) => {
-              setPage(1);
-              setSearch(e.target.value);
-            }}
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="Search ID / Nama Pelanggan"
+          className="w-full md:w-64 rounded-lg border px-3 py-2 text-sm"
+          value={search}
+          onChange={(e) => {
+            setPage(1); // reset ke page 1
+            setSearch(e.target.value);
+          }}
+        />
 
         <button
           onClick={() => setOpenAdd(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
         >
           + Tambah Pelanggan
         </button>
       </div>
 
       {/* TABLE */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      <div className="overflow-x-auto rounded-lg border bg-white">
         <table className="min-w-full text-sm">
           <thead className="bg-primary text-white">
             <tr>
               <th className="px-4 py-3 text-left">ID</th>
-              <th className="px-4 py-3 text-left">Nama Pelanggan</th>
-              <th className="px-4 py-3 text-left">Nomor telepon</th>
-              <th className="px-4 py-3 text-left">Tanggal registrasi</th>
+              <th className="px-4 py-3 text-left">Nama</th>
+              <th className="px-4 py-3 text-left">Telepon</th>
+              <th className="px-4 py-3 text-left">Registrasi</th>
               <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
@@ -86,7 +229,7 @@ export default function CustomerPage(){
           <tbody className="divide-y">
             {loading && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center">
+                <td colSpan={5} className="px-4 py-6 text-center">
                   Loading...
                 </td>
               </tr>
@@ -94,33 +237,28 @@ export default function CustomerPage(){
 
             {!loading && customers.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
+                <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
                   Data tidak ditemukan
                 </td>
               </tr>
             )}
-            {/* {console.log(customers)} */}
-            {customers.map((item, index) => (
-              <tr key={index} className="hover:bg-gray-50">
+
+            {customers.map((item) => (
+              <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono">{item.id}</td>
                 <td className="px-4 py-3">{item.name}</td>
                 <td className="px-4 py-3">{item.phone_number}</td>
                 <td className="px-4 py-3">
-                  {new Date(item.created_at).toLocaleDateString("id-ID", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "2-digit",
-                  })}
+                  {new Date(item.created_at).toLocaleDateString("id-ID")}
                 </td>
-                  <td className="w-1/5 text-center">
-
-                <Link
-                  href={`/customer/${item.id}`}
-                  className="bg-green-400 hover:bg-green-500 cursor-pointer text-black px-4 py-2 rounded-md"
+                <td className="px-4 py-3 text-center">
+                  <Link
+                    href={`/customer/${item.id}`}
+                    className="bg-green-400 hover:bg-green-500 px-4 py-2 rounded-md"
                   >
                     Detail
                   </Link>
-                  </td>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -128,17 +266,17 @@ export default function CustomerPage(){
       </div>
 
       {/* PAGINATION */}
-      {/* {totalPage > 1 && (
+      {pagination && pagination.total_pages > 1 && (
         <div className="flex justify-end gap-1">
           <button
-            className="rounded border px-3 py-1 text-sm"
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
+            className="rounded border px-3 py-1 text-sm"
           >
             «
           </button>
 
-          {Array.from({ length: totalPage }).map((_, i) => (
+          {Array.from({ length: pagination.total_pages }).map((_, i) => (
             <button
               key={i}
               onClick={() => setPage(i + 1)}
@@ -153,33 +291,24 @@ export default function CustomerPage(){
           ))}
 
           <button
-            className="rounded border px-3 py-1 text-sm"
-            disabled={page === totalPage}
+            disabled={page === pagination.total_pages}
             onClick={() => setPage(page + 1)}
+            className="rounded border px-3 py-1 text-sm"
           >
             »
           </button>
         </div>
-      )} */}
+      )}
 
-            {/* MODAL */}
+      {/* MODAL */}
       <AddCustomerModal
         open={openAdd}
         onClose={() => setOpenAdd(false)}
-        onSuccess={fetchCustomers}
+        onSuccess={() => {
+          setPage(1);
+          fetchCustomers();
+        }}
       />
-      {/* <EditCustomerModal
-        open={openEdit}
-        Customer={selectedCustomer}
-        onClose={() => setOpenEdit(false)}
-        onSuccess={fetchCustomers}
-        />
-      <DeleteCustomerModal
-        open={openDelete}
-        Customer={selectedCustomer}
-        onClose={() => setOpenDelete(false)}
-        onSuccess={fetchCustomers}
-        /> */}
     </div>
-    )
+  );
 }

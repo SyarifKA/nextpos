@@ -111,7 +111,7 @@ export default function CustomerDetailPage() {
           </thead>
 
           <tbody className="divide-y">
-            {customer.transactions.length === 0 && (
+            {customer?.transactions?.length === 0 && (
                 <tr>
                 <td colSpan={3} className="px-4 py-6 text-center text-gray-500">
                     Belum ada transaksi
@@ -119,7 +119,7 @@ export default function CustomerDetailPage() {
                 </tr>
             )}
 
-            {customer.transactions.map((trx) => (
+            {customer?.transactions.map((trx) => (
                 <tr key={trx.id}>
                 <td className="px-4 py-3 font-mono">{trx.id}</td>
                 <td className="px-4 py-3">
