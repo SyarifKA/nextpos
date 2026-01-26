@@ -44,7 +44,7 @@ export default function Product() {
         item.name.toLowerCase().includes(search.toLowerCase()) ||
         item.sku.toLowerCase().includes(search.toLowerCase());
 
-      const matchSupplier = supplier ? item.supplier === supplier : true;
+      const matchSupplier = supplier ? item.supplier_name === supplier : true;
       const matchYear = year ? item.year === year : true;
 
       return matchSearch && matchSupplier && matchYear;
@@ -91,7 +91,7 @@ export default function Product() {
           >
             <option value="">Semua Supplier</option>
             {Array.from(
-                new Set(products.map((p) => p.supplier).filter(Boolean))
+                new Set(products.map((p) => p.supplier_name).filter(Boolean))
                 ).map((s) => (
                 <option key={`supplier-${s}`} value={s}>
                     {s}
@@ -148,8 +148,8 @@ export default function Product() {
                   Rp {item.price.toLocaleString("id-ID")}
                 </td>
                 <td className="px-4 py-3">{item.stock}</td>
-                <td className="px-4 py-3">{item.expired}</td>
-                <td className="px-4 py-3">{item.supplier}</td>
+                <td className="px-4 py-3">{item.exp}</td>
+                <td className="px-4 py-3">{item.supplier_name}</td>
                 <td className="px-4 py-3 text-center space-x-2">
                   <button
                     onClick={() => {
