@@ -156,8 +156,8 @@ interface EditProductModalProps {
     name: string;
     price: number;
     stock: number;
-    expired: string;
-    supplier: string;
+    exp: string;
+    supplier_name: string;
   } | null;
   onClose: () => void;
   onSuccess: () => void;
@@ -226,8 +226,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                 name: product.name,
                 price: String(product.price),
                 stock: String(product.stock),
-                expired: product.expired,
-                supplier: product.supplier,
+                expired: product.exp,
+                supplier: product.supplier_name,
               }}
               onClose={() => {
                 MySwal.close();

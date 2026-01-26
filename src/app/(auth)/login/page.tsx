@@ -64,8 +64,8 @@ export default function LoginPage() {
         </h1>
         
         <h2 className="flex items-center justify-center gap-2 text-3xl font-bold mt-2 text-center">
-          <span className="text-blue-600">Suhaimi</span>
-          <span className="text-green-600">Store!</span>
+          <span className="text-blue-600">Safa</span>
+          <span className="text-green-600">Bodycare!</span>
         </h2>
 
         <p className="mt-2 text-sm text-gray-500 text-center">Login ke akun Anda</p>

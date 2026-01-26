@@ -76,38 +76,6 @@ const menu: MenuSection[] = [
       },
     ]
     },
-  // {
-  //   item: "App",
-  //   children: [
-  //     {
-  //       name: "Contact",
-  //       icon: NotebookTabs,
-  //       path: "/contact",
-  //     },
-  //     {
-  //       name: "Email Marketing",
-  //       icon: Mail,
-  //       children: [
-  //         { name: "Email", path: "/email" },
-  //       ],
-  //     },
-  //   ],
-  // },
-  // {
-  //   item: "Admin",
-  //   children: [
-  //     {
-  //       name: "Company Profile",
-  //       icon: Building2,
-  //       path: "/company-profile"
-  //     },
-  //     {
-  //       name: "Mail servers",
-  //       icon: Mail,
-  //       path: "/mail-servers"
-  //     },
-  //   ],
-  // },
 ];
 
 export default function Sidebar() {
@@ -128,7 +96,13 @@ export default function Sidebar() {
           width={200}
           height={200}
         /> */}
-        <span className="text-3xl text-primary font-semibold text-center">NextPOS</span>
+        {/* <span className="text-3xl text-primary font-semibold text-center">NextPOS</span> */}
+        <span className="text-2xl text-primary font-bold text-center">
+          <h2 className="flex items-start justify-center gap-2 mt-2 text-center">
+            <span className="text-blue-600">Safa</span>
+            <span className="text-green-600">Bodycare!</span>
+          </h2>
+        </span>
         {/* <Menu className="w-6 stroke-black stroke-[1.5]" /> */}
       </div>
 

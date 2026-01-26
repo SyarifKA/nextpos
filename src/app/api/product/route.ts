@@ -1,30 +1,88 @@
-// src/app/api/products/route.ts
 import { NextResponse } from "next/server";
-import { products } from "@/data/dummy";
-import { TypeProduct } from "@/models/type";
+import { cookies } from "next/headers";
 
-// GET /api/products
-export async function GET() {
-  return NextResponse.json({
-    success: true,
-    data: products,
-  });
+const API_SERVER = process.env.NEXT_PUBLIC_API_URL;
+
+export async function GET(req: Request) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { status: "UNAUTHORIZED", message: "Token not found" },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+
+    const page = searchParams.get("page") || "1";
+    const limit = searchParams.get("limit") || "10";
+    const search = searchParams.get("search") || "";
+
+    const qs = new URLSearchParams({
+      page,
+      limit,
+      search,
+    }).toString();
+
+    const res = await fetch(`${API_SERVER}product?${qs}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return NextResponse.json(data, { status: res.status });
+    }
+
+    return NextResponse.json(data);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: "ER500",
+        statusMessage: "API server unreachable",
+      },
+      { status: 500 }
+    );
+  }
 }
 
-// POST /api/products
+
 export async function POST(req: Request) {
-  const body = (await req.json()) as Omit<TypeProduct, "id">;
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
 
-  const newProduct: TypeProduct = {
-    id: products.length ? products[products.length - 1].id + 1 : 1,
-    ...body,
-  };
+    if (!token) {
+      return NextResponse.json(
+        { status: "UNAUTHORIZED", message: "Token not found" },
+        { status: 401 }
+      );
+    }
 
-  products.push(newProduct);
+    const body = await req.json();
+    console.log(body)
 
-  return NextResponse.json({
-    success: true,
-    message: "Product added",
-    data: newProduct,
-  });
+    const res = await fetch(`${API_SERVER}product`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
+  } catch (error) {
+    return NextResponse.json(
+      { status: "ER500", statusMessage: "API server unreachable" },
+      { status: 500 }
+    );
+  }
 }

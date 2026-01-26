@@ -158,32 +158,10 @@ const paginatedProducts = useMemo(() => {
                   <th className="p-3">ID / SKU</th>
                   <th className="p-3">Nama</th>
                   <th className="p-3">Stok</th>
+                  <th className="p-3">Expired</th>
                   <th className="p-3">Harga</th>
                 </tr>
               </thead>
-              {/* <tbody>
-                {filteredProducts.map((p) => (
-                  <tr
-                    key={p.id}
-                    onClick={() => addToCart(p)}
-                    className="cursor-pointer hover:bg-gray-50"
-                    title="Klik untuk tambah ke keranjang"
-                  >
-                    <td className="p-3">{p.sku ?? p.id}</td>
-                    <td className="p-3">{p.name}</td>
-                    <td className="p-3">{p.stock}</td>
-                    <td className="p-3">Rp {p.price.toLocaleString()}</td>
-                  </tr>
-                ))}
-
-                {filteredProducts.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="p-4 text-center text-gray-500">
-                      Tidak ada produk.
-                    </td>
-                  </tr>
-                )}
-              </tbody> */}
               <tbody>
                 {paginatedProducts.map((p) => (
                   <tr
@@ -194,6 +172,9 @@ const paginatedProducts = useMemo(() => {
                     <td className="p-3">{p.sku ?? p.id}</td>
                     <td className="p-3">{p.name}</td>
                     <td className="p-3">{p.stock}</td>
+                    <td className="px-4 py-3">
+                      {new Date(p.exp).toLocaleDateString("id-ID")}
+                    </td>
                     <td className="p-3">Rp {p.price.toLocaleString()}</td>
                   </tr>
                 ))}
@@ -262,12 +243,12 @@ const paginatedProducts = useMemo(() => {
                   <tr key={c.id} className="align-top">
                     <td className="p-2">{c.name}</td>
                     <td className="p-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-white">
                         <button
                           onClick={() =>
                             updateCartQuantity(c.id, Math.max(0, c.quantity - 1))
                           }
-                          className="px-2 py-1 border rounded"
+                          className="px-2 py-1 border bg-red-500 rounded"
                         >
                           -
                         </button>
@@ -278,7 +259,7 @@ const paginatedProducts = useMemo(() => {
                             const limited = Math.min(val, c.stock);
                             updateCartQuantity(c.id, limited);
                           }}
-                          className="w-12 text-center border rounded px-1 py-1"
+                          className="w-12 text-center border text-black rounded px-1 py-1"
                           type="number"
                           min={0}
                           max={c.stock}
@@ -287,7 +268,7 @@ const paginatedProducts = useMemo(() => {
                           onClick={() =>
                             updateCartQuantity(c.id, Math.min(c.stock, c.quantity + 1))
                           }
-                          className="px-2 py-1 border rounded"
+                          className="px-2 py-1 border bg-blue-500 rounded"
                         >
                           +
                         </button>
@@ -331,8 +312,6 @@ const paginatedProducts = useMemo(() => {
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => {
-                  // contoh: proses pembayaran sederhana (hanya clear cart)
-                  // di aplikasi nyata: kirim ke API, buat transaksi, dsb.
                   if (cartItems.length === 0) return;
                   alert(`Transaksi selesai. Total: Rp ${totals.totalPrice.toLocaleString()}`);
                   clearCart();

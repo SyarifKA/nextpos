@@ -4,8 +4,8 @@ export type TypeProduct = {
   name: string;
   price: number;
   stock: number;
-  expired: string;
-  supplier: string;
+  exp: string;
+  supplier_name: string;
   year: string;
 };
 
@@ -15,3 +15,10 @@ export type TypeCustomer = {
   phone_number: string;
   created_at: string;
 }
+
+export type Pagination = {
+  page: number;
+  limit: number;
+  total_data: number;
+  total_pages: number;
+};

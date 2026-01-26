@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AddProductModal from "@/components/modal/product/AddProduct";
 import EditProductModal from "@/components/modal/product/EditProduct";
 import DeleteProductModal from "@/components/modal/product/DeleteProduct";
-import { TypeProduct } from "@/models/type";
+import { TypeProduct, Pagination} from "@/models/type";
 
 export default function Product() {
   const [products, setProducts] = useState<TypeProduct[]>([]);
@@ -17,46 +17,32 @@ export default function Product() {
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<TypeProduct | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
 
-
-  const perPage = 10;
+  const limit = 10;
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/product");
+      const res = await fetch(
+        `/api/product?page=${page}&limit=${limit}&search=${search}`
+      );
       const json = await res.json();
+
       setProducts(json.data || []);
+      setPagination(json.pagination);
     } catch (error) {
-      console.error("Failed fetch products", error);
+      console.error("Failed fetch Customers", error);
     } finally {
       setLoading(false);
     }
   };
 
+  console.log(products)
+
   useEffect(() => {
     fetchProducts();
-  }, []);
-
-  const filteredData = useMemo(() => {
-    return products.filter((item) => {
-      const matchSearch =
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.sku.toLowerCase().includes(search.toLowerCase());
-
-      const matchSupplier = supplier ? item.supplier === supplier : true;
-      const matchYear = year ? item.year === year : true;
-
-      return matchSearch && matchSupplier && matchYear;
-    });
-  }, [products, search, supplier, year]);
-
-  const totalPage = Math.ceil(filteredData.length / perPage);
-
-  const paginatedData = filteredData.slice(
-    (page - 1) * perPage,
-    page * perPage
-  );
+  }, [page, search]);
 
   return (
     <div className="p-4 md:p-6 space-y-4">
@@ -65,9 +51,6 @@ export default function Product() {
         <h1 className="text-3xl font-semibold text-gray-800">
           Manajemen Produk
         </h1>
-        {/* <p className="text-sm text-gray-500">
-          Kelola data produk, stok, dan supplier
-        </p> */}
       </div>
 
       {/* FILTER + ACTION */}
@@ -94,31 +77,13 @@ export default function Product() {
           >
             <option value="">Semua Supplier</option>
             {Array.from(
-                new Set(products.map((p) => p.supplier).filter(Boolean))
+                new Set(products.map((p) => p.supplier_name).filter(Boolean))
                 ).map((s) => (
                 <option key={`supplier-${s}`} value={s}>
                     {s}
                 </option>
                 ))}
           </select>
-
-          {/* <select
-            className="w-full md:w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={year}
-            onChange={(e) => {
-              setPage(1);
-              setYear(e.target.value);
-            }}
-          >
-            <option value="">Semua Tahun</option>
-            {Array.from(
-                new Set(products.map((p) => p.year).filter(Boolean))
-                ).map((y) => (
-                <option key={`year-${y}`} value={y}>
-                    {y}
-                </option>
-                ))}
-          </select> */}
         </div>
 
         <button
@@ -153,7 +118,7 @@ export default function Product() {
               </tr>
             )}
 
-            {!loading && paginatedData.length === 0 && (
+            {!loading && products.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
                   Data tidak ditemukan
@@ -161,16 +126,18 @@ export default function Product() {
               </tr>
             )}
 
-            {paginatedData.map((item) => (
+            {products.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono">{item.sku}</td>
                 <td className="px-4 py-3">{item.name}</td>
                 <td className="px-4 py-3">
-                  Rp {item.price.toLocaleString("id-ID")}
+                  Rp {item.price?.toLocaleString("id-ID")}
                 </td>
                 <td className="px-4 py-3">{item.stock}</td>
-                <td className="px-4 py-3">{item.expired}</td>
-                <td className="px-4 py-3">{item.supplier}</td>
+                <td className="px-4 py-3">
+                  {new Date(item.exp).toLocaleDateString("id-ID")}
+                </td>
+                <td className="px-4 py-3">{item.supplier_name}</td>
                 <td className="px-4 py-3 text-center space-x-2">
                   <button
                     onClick={() => {
@@ -196,17 +163,17 @@ export default function Product() {
       </div>
 
       {/* PAGINATION */}
-      {totalPage > 1 && (
+      {pagination && pagination.total_pages > 1 && (
         <div className="flex justify-end gap-1">
           <button
-            className="rounded border px-3 py-1 text-sm"
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
+            className="rounded border px-3 py-1 text-sm"
           >
             «
           </button>
 
-          {Array.from({ length: totalPage }).map((_, i) => (
+          {Array.from({ length: pagination.total_pages }).map((_, i) => (
             <button
               key={i}
               onClick={() => setPage(i + 1)}
@@ -221,9 +188,9 @@ export default function Product() {
           ))}
 
           <button
-            className="rounded border px-3 py-1 text-sm"
-            disabled={page === totalPage}
+            disabled={page === pagination.total_pages}
             onClick={() => setPage(page + 1)}
+            className="rounded border px-3 py-1 text-sm"
           >
             »
           </button>

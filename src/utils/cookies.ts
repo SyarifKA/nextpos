@@ -5,7 +5,7 @@ export const AUTH_COOKIE_NAME = "access_token";
 export const cookieUtils = {
   setAuthToken: (token: string) => {
     Cookies.set(AUTH_COOKIE_NAME, token, {
-      expires: 1 / 24,
+      expires: 1,
       path: "/",
       sameSite: "lax",
     });
