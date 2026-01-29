@@ -132,24 +132,6 @@ export default function LoginPage() {
             {isLoading ? "Masuk..." : "Masuk"}
           </button>
         </form>
-
-        {/* <div className="flex items-center gap-4 my-6">
-          <div className="h-px bg-gray-300 flex-1" />
-          <span className="text-sm text-gray-500">Atau masuk menggunakan</span>
-          <div className="h-px bg-gray-300 flex-1" />
-        </div> */}
-
-        {/* <button className="w-full border text-primary cursor-pointer rounded-md py-2 flex items-center justify-center gap-2 hover:bg-gray-50 transition">
-          <FcGoogle/>
-          Continue with Google
-        </button> */}
-
-        {/* <p className="mt-6 text-sm text-gray-600 text-start">
-          Belum memiliki akun? {" "}
-          <Link href="/register" className="text-blue-600 font-medium hover:underline">
-            Registrasi disini
-          </Link>
-        </p> */}
       </section>
     </main>
   );

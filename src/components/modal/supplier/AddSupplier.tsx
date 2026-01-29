@@ -4,17 +4,9 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import React, { useEffect, useRef } from "react";
 import { createRoot, Root } from "react-dom/client";
+import { InputProps } from "@/models/type";
 
 const MySwal = withReactContent(Swal);
-
-interface InputProps {
-  label: string;
-  placeholder: string;
-  value: string;
-  type?: string;
-  className: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-}
 
 const InputField: React.FC<InputProps> = ({
   label,
@@ -45,65 +37,65 @@ const InputField: React.FC<InputProps> = ({
   );
 };
 
-interface CustomerForm {
-    id: string;
-    name: string;
-    phone_number: string;
-    email: string;
+interface SupplierForm {
+  company_name: string;
+  phone_company: string;
+  sales_name: string;
+  phone_sales: string;
 }
 
 interface ModalContentProps {
-  data: {
-    id: string;
-    name: string;
-    phone_number: string;
-    email: string;
-  } | null;
   onClose: () => void;
-  onSubmit: (data: CustomerForm) => void;
+  onSubmit: (data: SupplierForm) => void;
 }
 
-const ModalContent: React.FC<ModalContentProps> = ({data, onClose, onSubmit }) => {
-    const [local, setLocal] = React.useState<CustomerForm>({
-    id: data?.id ?? "",
-    name: data?.name ?? "",
-    phone_number: data?.phone_number ?? "",
-    email: data?.email ?? "",
-    });
-
+const ModalContent: React.FC<ModalContentProps> = ({ onClose, onSubmit }) => {
+  const [local, setLocal] = React.useState<SupplierForm>({
+    company_name: "",
+    phone_company: "",
+    sales_name: "",
+    phone_sales: "",
+  });
 
   return (
     <div className="flex flex-col w-full p-6 text-start">
       <h2 className="text-2xl font-semibold text-primary">
-        Edit data {local.name}
+        Tambah supplier baru
       </h2>
       <p className="text-gray-600 text-md mt-1">
-        Masukkan informasi pelanggan untuk ditambahkan ke sistem.
+        Masukkan informasi supplier untuk ditambahkan ke sistem.
       </p>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
-            label="Nama"
-            value={local.name}
+            label="Nama perusahaan"
+            value={local.company_name}
             className=""
-            placeholder="Contoh: Fulan"
-            onChange={(e) => setLocal((s) => ({ ...s, name: e.target.value }))}
+            placeholder="Contoh: PT Maju Jaya"
+            onChange={(e) => setLocal((s) => ({ ...s, company_name: e.target.value }))}
             />
             <InputField
-            label="Nomor telpon"
+            label="Nomor perusahaan"
             type="text"
-            value={local.phone_number}
+            value={local.phone_company}
             className=""
             placeholder="Nomor telpon"
-            onChange={(e) => setLocal((s) => ({ ...s, phone_number: e.target.value }))}
+            onChange={(e) => setLocal((s) => ({ ...s, phone_company: e.target.value }))}
             />
             <InputField
-            label="Email"
-            type="email"
+            label="Nama sales"
+            value={local.sales_name}
             className=""
-            value={local.email}
-            placeholder="example@gmail.com"
-            onChange={(e) => setLocal((s) => ({ ...s, email: e.target.value }))}
+            placeholder="Contoh: Hidayat"
+            onChange={(e) => setLocal((s) => ({ ...s, sales_name: e.target.value }))}
+            />
+            <InputField
+            label="Nomor sales"
+            type="text"
+            value={local.phone_sales}
+            className=""
+            placeholder="Nomor telpon"
+            onChange={(e) => setLocal((s) => ({ ...s, phone_sales: e.target.value }))}
             />
           </div>
 
@@ -126,45 +118,44 @@ const ModalContent: React.FC<ModalContentProps> = ({data, onClose, onSubmit }) =
   );
 };
 
-interface EditCustomerModalProps {
+interface AddSupplierModalProps {
   open: boolean;
-  data: CustomerForm | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
+const AddSupplierModal: React.FC<AddSupplierModalProps> = ({
   open,
-  data,
   onClose,
   onSuccess,
 }) => {
   const reactRootRef = useRef<Root | null>(null);
 
-  const handleSubmit = async (data: CustomerForm) => {
-    const res = await fetch(`/api/customer/${data.id}`, {
-      method: "PUT",
+  const handleSubmit = async (data: SupplierForm) => {
+    const res = await fetch("/api/supplier", {
+      method: "POST",
       body: JSON.stringify({
-        name: data.name,
-        phone_number: data.phone_number,
-        email: data.email
+        company_name: data.company_name,
+        phone_company: data.phone_company,
+        sales_name: data.sales_name,
+        phone_sales: data.phone_sales
       }),
     });
 
     if (res.ok) {
       onSuccess();
       MySwal.close();
-
+        onClose()
       MySwal.fire({
         icon: "success",
-        title: "Customer Edited!",
+        title: "Supplier added!",
         timer: 1200,
         showConfirmButton: false,
       });
     } else {
       MySwal.fire({
         icon: "error",
-        title: "Failed to Edit Customer",
+        title: "Failed to add supplier",
         timer: 1400,
         showConfirmButton: false,
       });
@@ -180,22 +171,21 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
       allowOutsideClick: true,
       width: "680px",
       padding: 0,
-        didOpen: () => {
-            const container = document.getElementById("react-swal-container");
-            if (!container) return; 
-            if (!reactRootRef.current) {
-                reactRootRef.current = createRoot(container);
-            }   
-            reactRootRef.current.render(
-                <ModalContent
-                data={data}
-                onClose={() => {
-                    MySwal.close();
-                }}
-                onSubmit={handleSubmit}
-                />
-            );
-        },
+
+      didOpen: () => {
+        const container = document.getElementById("react-swal-container");
+        if (container) {
+          reactRootRef.current = createRoot(container);
+          reactRootRef.current.render(
+            <ModalContent
+              onClose={() => {
+                MySwal.close();
+              }}
+              onSubmit={handleSubmit}
+            />
+          );
+        }
+      },
       willClose: () => {
         if (reactRootRef.current) {
           reactRootRef.current.unmount();
@@ -209,4 +199,4 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
   return null;
 };
 
-export default EditCustomerModal;
+export default AddSupplierModal;

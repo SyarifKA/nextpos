@@ -1,14 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 const API_SERVER = process.env.NEXT_PUBLIC_API_URL;
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: Request) {
   try {
-    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
 
@@ -19,7 +15,19 @@ export async function GET(
       );
     }
 
-    const res = await fetch(`${API_SERVER}product/${id}`, {
+    const { searchParams } = new URL(req.url);
+
+    const page = searchParams.get("page") || "1";
+    const limit = searchParams.get("limit") || "10";
+    const search = searchParams.get("search") || "";
+
+    const qs = new URLSearchParams({
+      page,
+      limit,
+      search,
+    }).toString();
+
+    const res = await fetch(`${API_SERVER}supplier?${qs}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -33,20 +41,20 @@ export async function GET(
     }
 
     return NextResponse.json(data);
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { status: "ER500", statusMessage: "API server unreachable" },
+      {
+        status: "ER500",
+        statusMessage: "API server unreachable",
+      },
       { status: 500 }
     );
   }
 }
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+
+export async function POST(req: Request) {
   try {
-    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
 
@@ -58,9 +66,10 @@ export async function PUT(
     }
 
     const body = await req.json();
+    console.log(body)
 
-    const res = await fetch(`${API_SERVER}product/${id}`, {
-      method: "PUT",
+    const res = await fetch(`${API_SERVER}supplier`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
@@ -70,40 +79,7 @@ export async function PUT(
 
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
-  } catch {
-    return NextResponse.json(
-      { status: "ER500", statusMessage: "API server unreachable" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { id } = await params;
-    const cookieStore = await cookies();
-    const token = cookieStore.get("access_token")?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { status: "UNAUTHORIZED", message: "Token not found" },
-        { status: 401 }
-      );
-    }
-
-    const res = await fetch(`${API_SERVER}product/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { status: "ER500", statusMessage: "API server unreachable" },
       { status: 500 }

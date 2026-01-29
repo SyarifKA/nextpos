@@ -11,7 +11,7 @@ const MySwal = withReactContent(Swal);
 interface DeleteProductModalProps {
   open: boolean;
   product: {
-    id: number;
+    id: string;
     sku: string;
     name: string;
   } | null;

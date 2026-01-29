@@ -43,9 +43,14 @@ const InputField: React.FC<InputProps> = ({
 interface ProductForm {
   sku: string;
   name: string;
+  size: string;
+  capital: string;
   price: string;
+  ppn: string;
   stock: string;
-  expired: string;
+  discount_supplier: string;
+  discount_customer: string;
+  exp: string;
   supplier: string;
 }
 
@@ -58,16 +63,21 @@ const ModalContent: React.FC<ModalContentProps> = ({ onClose, onSubmit }) => {
   const [local, setLocal] = React.useState<ProductForm>({
     sku: "",
     name: "",
+    size: "",
+    capital: "",
     price: "",
+    ppn: "",
     stock: "",
-    expired: "",
+    discount_customer: "",
+    discount_supplier: "",
+    exp: "",
     supplier: "",
   });
 
   return (
     <div className="flex flex-col w-full p-6 text-start">
-      <h2 className="text-2xl font-semibold text-gray-800">
-        Add New Product
+      <h2 className="text-2xl font-semibold text-primary">
+        Tambah produk baru
       </h2>
       <p className="text-gray-600 text-md mt-1">
         Masukkan informasi produk untuk ditambahkan ke sistem.
@@ -89,11 +99,35 @@ const ModalContent: React.FC<ModalContentProps> = ({ onClose, onSubmit }) => {
         />
 
         <InputField
-          label="Harga"
+          label="Harga beli"
+          type="number"
+          value={local.capital}
+          placeholder="Contoh: 15000"
+          onChange={(e) => setLocal((s) => ({ ...s, capital: e.target.value }))}
+        />
+
+        <InputField
+          label="Harga jual"
           type="number"
           value={local.price}
           placeholder="Contoh: 15000"
           onChange={(e) => setLocal((s) => ({ ...s, price: e.target.value }))}
+        />
+
+        <InputField
+          label="Discount toko"
+          type="number"
+          value={local.discount_supplier}
+          placeholder="Contoh: 15000"
+          onChange={(e) => setLocal((s) => ({ ...s, discount_supplier: e.target.value }))}
+        />
+
+        <InputField
+          label="Discount pelanggan"
+          type="number"
+          value={local.discount_customer}
+          placeholder="Contoh: 1000"
+          onChange={(e) => setLocal((s) => ({ ...s, discount_customer: e.target.value }))}
         />
 
         <InputField
@@ -105,11 +139,27 @@ const ModalContent: React.FC<ModalContentProps> = ({ onClose, onSubmit }) => {
         />
 
         <InputField
+          label="Size"
+          type="text"
+          value={local.size}
+          placeholder="Ukuran produk"
+          onChange={(e) => setLocal((s) => ({ ...s, size: e.target.value }))}
+        />
+        
+        <InputField
+          label="PPN"
+          type="number"
+          value={local.ppn}
+          placeholder="Persentase ppn"
+          onChange={(e) => setLocal((s) => ({ ...s, ppn: e.target.value }))}
+        />
+
+        <InputField
           label="Expired Date"
           type="date"
-          value={local.expired}
+          value={local.exp}
           placeholder=""
-          onChange={(e) => setLocal((s) => ({ ...s, expired: e.target.value }))}
+          onChange={(e) => setLocal((s) => ({ ...s, exp: e.target.value }))}
         />
 
         <InputField
@@ -160,9 +210,10 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
       body: JSON.stringify({
         sku: data.sku,
         name: data.name,
+        capital: Number(data.capital),
         price: Number(data.price),
         qty: Number(data.stock),
-        expired: data.expired,
+        exp: data.exp,
         supplier: data.supplier,
       }),
     });

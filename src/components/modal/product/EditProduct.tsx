@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import React, { useEffect, useRef } from "react";
 import { createRoot, Root } from "react-dom/client";
+import { ProductForm } from "@/models/type";
 
 const MySwal = withReactContent(Swal);
 
@@ -17,18 +18,8 @@ interface InputProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-interface ProductForm {
-  id: number;
-  sku: string;
-  name: string;
-  price: string;
-  stock: string;
-  expired: string;
-  supplier: string;
-}
-
 interface ModalContentProps {
-  data: ProductForm;
+  data: ProductForm | null;
   onClose: () => void;
   onSubmit: (data: ProductForm) => void;
 }
@@ -67,11 +58,19 @@ const ModalContent: React.FC<ModalContentProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [local, setLocal] = React.useState<ProductForm>(data);
+  const [local, setLocal] = React.useState<ProductForm>({
+    id: data?.id ?? "",
+    sku: data?.sku ?? "",
+    name: data?.name ?? "",
+    price: data? String(data.price) : "",
+    stock: data? String(data.stock) : "",
+    exp: data?.exp ?? "",
+    supplier_name: data?.supplier_name ?? "",
+  });
 
   return (
     <div className="flex flex-col w-full p-6 text-start">
-      <h2 className="text-2xl font-semibold text-gray-800">
+      <h2 className="text-2xl font-semibold text-primary">
         Edit Product
       </h2>
       <p className="text-gray-600 text-md mt-1">
@@ -112,17 +111,17 @@ const ModalContent: React.FC<ModalContentProps> = ({
         <InputField
           label="Expired Date"
           type="date"
-          value={local.expired}
+          value={local.exp}
           placeholder=""
-          onChange={(e) => setLocal((s) => ({ ...s, expired: e.target.value }))}
+          onChange={(e) => setLocal((s) => ({ ...s, exp: e.target.value }))}
         />
 
         <InputField
           label="Supplier"
-          value={local.supplier}
+          value={local.supplier_name}
           placeholder="Supplier"
           onChange={(e) =>
-            setLocal((s) => ({ ...s, supplier: e.target.value }))
+            setLocal((s) => ({ ...s, supplier_name: e.target.value }))
           }
         />
       </div>
@@ -150,15 +149,7 @@ const ModalContent: React.FC<ModalContentProps> = ({
 
 interface EditProductModalProps {
   open: boolean;
-  product: {
-    id: number;
-    sku: string;
-    name: string;
-    price: number;
-    stock: number;
-    exp: string;
-    supplier_name: string;
-  } | null;
+  product: ProductForm | null;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -179,8 +170,8 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         name: data.name,
         price: Number(data.price),
         stock: Number(data.stock),
-        expired: data.expired,
-        supplier: data.supplier,
+        exp: data.exp,
+        supplier_name: data.supplier_name,
       }),
     });
 
@@ -205,7 +196,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   };
 
   useEffect(() => {
-    if (!open || !product) return;
+    if (!open) return;
 
     MySwal.fire({
       html: `<div id="react-swal-container"></div>`,
@@ -220,15 +211,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
           reactRootRef.current = createRoot(container);
           reactRootRef.current.render(
             <ModalContent
-              data={{
-                id: product.id,
-                sku: product.sku,
-                name: product.name,
-                price: String(product.price),
-                stock: String(product.stock),
-                expired: product.exp,
-                supplier: product.supplier_name,
-              }}
+              data={product}
               onClose={() => {
                 MySwal.close();
                 onClose();

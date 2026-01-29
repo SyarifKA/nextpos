@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Search } from "lucide-react";
 import { products as dummyProducts} from "@/data/dummy";
-import { TypeProduct } from "@/models/type";
+import { TypeProduct, TypeCustomer } from "@/models/type";
 
 type CartItem = TypeProduct & { quantity: number };
 
@@ -14,11 +14,23 @@ export default function PosPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [customers, setCustomers] = useState<TypeCustomer[]>([]);
+  const [customerQuery, setCustomerQuery] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState<TypeCustomer | null>(null);
+  const [openCustomerDropdown, setOpenCustomerDropdown] = useState(false);
 
-  // useEffect(() => {
-  //   setProducts(dummyProducts);
-  // }, []);
+  const customerInputRef = useRef<HTMLInputElement>(null);
 
+  const fetchCustomers = async () => {
+    try {
+      const res = await fetch("/api/customer");
+      const json = await res.json();
+      setCustomers(json.data || []);
+    } catch (err) {
+      console.error("Failed fetch customers", err);
+    }
+  };
+  
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -31,9 +43,14 @@ export default function PosPage() {
       setLoading(false);
     }
   };
-
+  
+  const inputRef = useRef<HTMLInputElement>(null);
+  const customerWrapperRef = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
+    inputRef.current?.focus();
     fetchProducts();
+    fetchCustomers();
   }, []);
 
   // Debounce sederhana untuk search (300ms)
@@ -61,7 +78,7 @@ export default function PosPage() {
         const found = prev.find((c) => c.id === product.id);
         if (found) {
           // jika sudah ada, tambah quantity (jika stok cukup)
-          if (found.quantity + 1 > product.stock) return prev;
+          if (found.quantity + 1 > Number(product.stock)) return prev;
           return prev.map((c) =>
             c.id === product.id ? { ...c, quantity: c.quantity + 1 } : c
           );
@@ -74,7 +91,7 @@ export default function PosPage() {
     [setCartItems]
   );
 
-  const updateCartQuantity = useCallback((id: number, newQty: number) => {
+  const updateCartQuantity = useCallback((id: string, newQty: number) => {
     setCartItems((prev) =>
       prev
         .map((c) => (c.id === id ? { ...c, quantity: Math.max(0, newQty) } : c))
@@ -82,14 +99,14 @@ export default function PosPage() {
     );
   }, []);
 
-  const removeFromCart = useCallback((id: number) => {
+  const removeFromCart = useCallback((id: string) => {
     setCartItems((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
   // Total harga dan total item
   const totals = useMemo(() => {
     const totalItems = cartItems.reduce((s, c) => s + c.quantity, 0);
-    const totalPrice = cartItems.reduce((s, c) => s + c.quantity * c.price, 0);
+    const totalPrice = cartItems.reduce((s, c) => s + c.quantity * Number(c.price), 0);
     return { totalItems, totalPrice };
   }, [cartItems]);
 
@@ -98,13 +115,40 @@ export default function PosPage() {
 
   const perPage = 10;
 
-const totalPage = Math.ceil(filteredProducts.length / perPage);
+  const totalPage = Math.ceil(filteredProducts.length / perPage);
 
-const paginatedProducts = useMemo(() => {
-  const start = (page - 1) * perPage;
-  return filteredProducts.slice(start, start + perPage);
-}, [filteredProducts, page]);
+  const paginatedProducts = useMemo(() => {
+    const start = (page - 1) * perPage;
+    return filteredProducts.slice(start, start + perPage);
+  }, [filteredProducts, page]);
 
+  const filteredCustomers = useMemo(() => {
+    if (!customerQuery) return customers;
+    const q = customerQuery.toLowerCase();
+
+    return customers.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.phone_number || "").includes(q) ||
+        c.id.includes(q)
+    );
+  }, [customers, customerQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        customerWrapperRef.current &&
+        !customerWrapperRef.current.contains(e.target as Node)
+      ) {
+        setOpenCustomerDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  console.log(cartItems)
 
   return (
     <div className="w-full min-h-screen p-6 bg-gray-50">
@@ -129,10 +173,11 @@ const paginatedProducts = useMemo(() => {
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
+              ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari produk (nama / sku / id)..."
-              className="w-full pl-10 pr-3 py-2 border rounded-lg bg-white"
+              className="w-full pl-10 pr-3 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <button
@@ -256,7 +301,7 @@ const paginatedProducts = useMemo(() => {
                           value={c.quantity}
                           onChange={(e) => {
                             const val = Number(e.target.value) || 0;
-                            const limited = Math.min(val, c.stock);
+                            const limited = Math.min(val, Number(c.stock));
                             updateCartQuantity(c.id, limited);
                           }}
                           className="w-12 text-center border text-black rounded px-1 py-1"
@@ -266,7 +311,7 @@ const paginatedProducts = useMemo(() => {
                         />
                         <button
                           onClick={() =>
-                            updateCartQuantity(c.id, Math.min(c.stock, c.quantity + 1))
+                            updateCartQuantity(c.id, Math.min(Number(c.stock), c.quantity + 1))
                           }
                           className="px-2 py-1 border bg-blue-500 rounded"
                         >
@@ -275,7 +320,7 @@ const paginatedProducts = useMemo(() => {
                       </div>
                       <div className="text-xs text-gray-400">Stok: {c.stock}</div>
                     </td>
-                    <td className="p-2">Rp {(c.price * c.quantity).toLocaleString()}</td>
+                    <td className="p-2">Rp {(Number(c.price) * c.quantity).toLocaleString()}</td>
                     <td className="p-2">
                       <button
                         onClick={() => removeFromCart(c.id)}
@@ -308,7 +353,59 @@ const paginatedProducts = useMemo(() => {
               <div>Total</div>
               <div>Rp {totals.totalPrice.toLocaleString()}</div>
             </div>
+            {/* CUSTOMER SELECT */}
+            <div ref={customerWrapperRef} className="mb-4 pt-4 relative">
+              <label className="text-sm text-gray-600 mb-1 block">
+                Customer
+              </label>
 
+              <input
+                ref={customerInputRef}
+                value={selectedCustomer ? selectedCustomer.name : customerQuery}
+                onChange={(e) => {
+                  setSelectedCustomer(null);
+                  setCustomerQuery(e.target.value);
+                  setOpenCustomerDropdown(true);
+                }}
+                onFocus={() => setOpenCustomerDropdown(true)}
+                placeholder="Cari customer (nama / HP / ID)"
+                className="w-full border rounded-lg px-3 py-2"
+              />
+
+              {openCustomerDropdown && !selectedCustomer && (
+                <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow max-h-48 overflow-auto">
+                  {filteredCustomers.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      Customer tidak ditemukan
+                    </div>
+                  )}
+
+                  {filteredCustomers.map((c) => (
+                    <button
+                      key={c.id}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setSelectedCustomer(c);
+                        setCustomerQuery("");
+                        setOpenCustomerDropdown(false);
+                        customerInputRef.current?.focus();
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                    >
+                      <div className="font-medium">{c.name}</div>
+                      <div className="text-xs text-gray-500">
+                        {c.phone_number ?? "-"} • ID: {c.id}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {selectedCustomer && (
+                <div className="mt-1 text-xs text-green-600">
+                  Customer dipilih ✔
+                </div>
+              )}
+            </div>
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => {

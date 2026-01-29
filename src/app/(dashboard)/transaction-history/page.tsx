@@ -5,7 +5,7 @@ import { TypeCustomer, Pagination } from "@/models/type";
 import AddCustomerModal from "@/components/modal/customer/AddCustomer";
 import Link from "next/link";
 
-export default function CustomerPage() {
+export default function HistoryTrxPage() {
   const [customers, setCustomers] = useState<TypeCustomer[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
@@ -13,7 +13,7 @@ export default function CustomerPage() {
   
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const limit = 10;
+  const limit = 5;
   const fetchCustomers = async () => {
     try {
       setLoading(true);

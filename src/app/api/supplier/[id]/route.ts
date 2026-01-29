@@ -19,7 +19,7 @@ export async function GET(
       );
     }
 
-    const res = await fetch(`${API_SERVER}product/${id}`, {
+    const res = await fetch(`${API_SERVER}supplier/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -59,7 +59,7 @@ export async function PUT(
 
     const body = await req.json();
 
-    const res = await fetch(`${API_SERVER}product/${id}`, {
+    const res = await fetch(`${API_SERVER}supplier/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -94,7 +94,7 @@ export async function DELETE(
       );
     }
 
-    const res = await fetch(`${API_SERVER}product/${id}`, {
+    const res = await fetch(`${API_SERVER}supplier/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef} from "react";
 import AddProductModal from "@/components/modal/product/AddProduct";
 import EditProductModal from "@/components/modal/product/EditProduct";
 import DeleteProductModal from "@/components/modal/product/DeleteProduct";
-import { TypeProduct, Pagination} from "@/models/type";
+import { TypeProduct, Pagination, ProductForm} from "@/models/type";
 
 export default function Product() {
   const [products, setProducts] = useState<TypeProduct[]>([]);
@@ -16,6 +16,7 @@ export default function Product() {
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<TypeProduct | null>(null);
+  const [editProduct, setEditProduct] = useState<ProductForm | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
   const [pagination, setPagination] = useState<Pagination | null>(null);
 
@@ -30,6 +31,7 @@ export default function Product() {
       const json = await res.json();
 
       setProducts(json.data || []);
+      setEditProduct(json.data || [])
       setPagination(json.pagination);
     } catch (error) {
       console.error("Failed fetch Customers", error);
@@ -38,11 +40,15 @@ export default function Product() {
     }
   };
 
-  console.log(products)
-
   useEffect(() => {
     fetchProducts();
   }, [page, search]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   return (
     <div className="p-4 md:p-6 space-y-4">
@@ -57,6 +63,7 @@ export default function Product() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-2 md:flex-row">
           <input
+            ref={inputRef}
             type="text"
             placeholder="Search SKU / Nama Produk"
             className="w-full md:w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -131,7 +138,7 @@ export default function Product() {
                 <td className="px-4 py-3 font-mono">{item.sku}</td>
                 <td className="px-4 py-3">{item.name}</td>
                 <td className="px-4 py-3">
-                  Rp {item.price?.toLocaleString("id-ID")}
+                  Rp {item.price?.toLocaleString()}
                 </td>
                 <td className="px-4 py-3">{item.stock}</td>
                 <td className="px-4 py-3">
@@ -205,7 +212,7 @@ export default function Product() {
       />
       <EditProductModal
         open={openEdit}
-        product={selectedProduct}
+        product={editProduct}
         onClose={() => setOpenEdit(false)}
         onSuccess={fetchProducts}
         />

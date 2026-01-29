@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/utils/cn";
+import ExitModal from "../modal/exit/exit";
 
 type MenuSubItem = {
   name: string;
@@ -52,6 +53,15 @@ const menu: MenuSection[] = [
         icon: BookOpen,
         children: [
           { name: "penjualan", path: "/sales" },
+          { name: "history transaksi", path: "/transaction-history" },
+        ],
+      },
+      {
+        name: "Stok",
+        icon: BookOpen,
+        children: [
+          { name: "stok produk", path: "/product-stock" },
+          { name: "history stok", path: "/stock-history" },
         ],
       },
       {
@@ -81,6 +91,7 @@ const menu: MenuSection[] = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [openExit, setOpenExit] = useState(false);
 
   const toggleMenu = (name: string) => {
     setOpen((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -179,7 +190,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <button className="flex justify-around items-center p-2 bg-secondary mx-2 rounded-md">
+      <div className="flex justify-around items-center p-2 bg-secondary mx-2 rounded-md">
         <Image
           src={"/assets/boy.png"}
           alt="User Avatar"
@@ -199,8 +210,17 @@ export default function Sidebar() {
             {/* <span className="bg-gray-300 px-1 rounded-md">+ 2</span> */}
           </div>
         </div>
-        <Power className="text-primary"/>
-      </button>
+        <button 
+          onClick={()=>setOpenExit(!openExit)}
+          className=" hover:bg-red-500 p-2 rounded-lg"
+        >
+          <Power className="text-primary"/>
+        </button>
+      </div>
+      <ExitModal
+        open={openExit}
+        onClose={() => setOpenExit(false)}
+      />
     </aside>
   );
 }

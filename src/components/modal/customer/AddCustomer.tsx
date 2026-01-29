@@ -4,18 +4,9 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import React, { useEffect, useRef } from "react";
 import { createRoot, Root } from "react-dom/client";
+import { InputProps } from "@/models/type";
 
 const MySwal = withReactContent(Swal);
-
-interface InputProps {
-  label: string;
-  placeholder: string;
-  as?: "input" | "textarea";
-  value: string;
-  type?: string;
-  className: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-}
 
 const InputField: React.FC<InputProps> = ({
   label,
@@ -23,7 +14,6 @@ const InputField: React.FC<InputProps> = ({
   onChange,
   placeholder,
   type = "text",
-  as = "input",
   className = "",
 }) => {
   const baseClass = `
@@ -36,15 +26,6 @@ const InputField: React.FC<InputProps> = ({
   return (
     <div className="flex flex-col w-full gap-2">
       <label className="font-medium text-gray-700">{label}</label>
-
-      {as === "textarea" ? (
-        <textarea
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className={baseClass}
-        />
-      ) : (
         <input
           type={type}
           value={value}
@@ -52,7 +33,6 @@ const InputField: React.FC<InputProps> = ({
           placeholder={placeholder}
           className={baseClass}
         />
-      )}
     </div>
   );
 };
@@ -60,7 +40,7 @@ const InputField: React.FC<InputProps> = ({
 interface CustomerForm {
   name: string;
   phone_number: string;
-  address: string;
+  email: string;
 }
 
 interface ModalContentProps {
@@ -72,7 +52,7 @@ const ModalContent: React.FC<ModalContentProps> = ({ onClose, onSubmit }) => {
   const [local, setLocal] = React.useState<CustomerForm>({
     name: "",
     phone_number: "",
-    address: "",
+    email: "",
   });
 
   return (
@@ -84,36 +64,30 @@ const ModalContent: React.FC<ModalContentProps> = ({ onClose, onSubmit }) => {
         Masukkan informasi pelanggan untuk ditambahkan ke sistem.
       </p>
 
-        <div className="flex flex-col gap-2">
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                label="Nama"
-                as="input"
-                value={local.name}
-                className=""
-                placeholder="Contoh: Fulan"
-                onChange={(e) => setLocal((s) => ({ ...s, name: e.target.value }))}
-                />
-
-                <InputField
-                label="Nomor telpon"
-                as="input"
-                value={local.phone_number}
-                className=""
-                placeholder="Nomor telpon"
-                onChange={(e) => setLocal((s) => ({ ...s, phone_number: e.target.value }))}
-                />
-
-            </div>
-                <InputField
-                label="Alamat"
-                as="textarea"
-                type="text"
-                className="min-h-32"
-                value={local.address}
-                placeholder="jl. kebahagiaan"
-                onChange={(e) => setLocal((s) => ({ ...s, address: e.target.value }))}
-                />
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InputField
+            label="Nama"
+            value={local.name}
+            className=""
+            placeholder="Contoh: Fulan"
+            onChange={(e) => setLocal((s) => ({ ...s, name: e.target.value }))}
+            />
+            <InputField
+            label="Nomor telpon"
+            type="text"
+            value={local.phone_number}
+            className=""
+            placeholder="Nomor telpon"
+            onChange={(e) => setLocal((s) => ({ ...s, phone_number: e.target.value }))}
+            />
+            <InputField
+            label="Email"
+            type="email"
+            className=""
+            value={local.email}
+            placeholder="example@gmail.com"
+            onChange={(e) => setLocal((s) => ({ ...s, email: e.target.value }))}
+            />
           </div>
 
       <div className="flex justify-end gap-3 mt-8 font-medium">
@@ -154,7 +128,7 @@ const AddCustomerModal: React.FC<AddCustomerModalProps> = ({
       body: JSON.stringify({
         name: data.name,
         phone_number: data.phone_number,
-        address: data.address
+        email: data.email
       }),
     });
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import EditCustomerModal from "@/components/modal/customer/EditCustomer";
 
 type Transaction = {
   id: string;
@@ -13,13 +14,15 @@ type CustomerDetail = {
   id: string;
   name: string;
   phone_number: string;
-  address: string;
+  email: string;
   transactions: Transaction[];
 };
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const [openEdit, setOpenEdit] = useState(false);
+
 
   const [data, setData] = useState<CustomerDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,17 +47,13 @@ export default function CustomerDetailPage() {
   if (loading) {
     return <div className="p-6">Loading...</div>;
   }
-
   const customer = data ?? {
     id: "-",
     name: "-",
     phone_number: "-",
-    address: "-",
+    email: "-",
     transactions: [],
     };
-//   if (!data) {
-//     return <div className="p-6 text-gray-500">Data tidak ditemukan</div>;
-//   }
 
   return (
     <div className="p-4 md:p-6 space-y-6">
@@ -72,27 +71,59 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* CUSTOMER INFO */}
-      <div className="rounded-lg border bg-white p-4 space-y-2">
-        <div>
-            <span className="text-gray-500 text-sm">ID Customer</span>
-            <p className="font-mono">{customer.id}</p>
+      <div className="rounded-xl border bg-white shadow-sm">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <h2 className="font-semibold text-gray-800">Informasi Pelanggan</h2>
+          <button
+            onClick={() => setOpenEdit(true)}
+            className="text-sm text-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-lg transition"
+          >
+            ✏️ Edit
+          </button>
         </div>
 
-        <div>
-            <span className="text-gray-500 text-sm">Nama</span>
-            <p>{customer.name}</p>
+        {/* SUMMARY (HARDCODE) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border-b bg-gray-50">
+          <div className="rounded-lg bg-white p-4 border">
+            <p className="text-xs text-gray-500">Jumlah Transaksi</p>
+            <p className="text-2xl font-semibold">
+              0
+            </p>
+          </div>
+
+          <div className="rounded-lg bg-white p-4 border">
+            <p className="text-xs text-gray-500">Total Nominal</p>
+            <p className="text-2xl font-semibold text-green-600">
+              Rp 0
+            </p>
+          </div>
         </div>
 
-        <div>
-            <span className="text-gray-500 text-sm">Nomor Telepon</span>
+        {/* DETAIL */}
+        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs text-gray-500">ID Customer</p>
+            <p className="font-mono text-sm">{customer.id}</p>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-500">Nama</p>
+            <p className="font-medium">{customer.name}</p>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-500">Nomor Telepon</p>
             <p>{customer.phone_number}</p>
-        </div>
+          </div>
 
-        <div>
-            <span className="text-gray-500 text-sm">Alamat</span>
-            <p>{customer.address}</p>
+          <div>
+            <p className="text-xs text-gray-500">Email</p>
+            <p>{customer.email}</p>
+          </div>
         </div>
-        </div>
+      </div>
+
 
 
       {/* TRANSAKSI */}
@@ -133,6 +164,12 @@ export default function CustomerDetailPage() {
             </tbody>
         </table>
       </div>
+      <EditCustomerModal
+        open={openEdit}
+        data={data}
+        onClose={() => setOpenEdit(false)}
+        onSuccess={fetchCustomerDetail}
+        />
     </div>
   );
 }

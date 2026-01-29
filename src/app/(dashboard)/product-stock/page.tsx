@@ -1,33 +1,37 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import AddSupplierModal from "@/components/modal/supplier/AddSupplier";
-// import EditSupplierModal from "@/components/modal/supplier/EditSupplier";
-// import DeleteSupplierModal from "@/components/modal/supplier/DeleteSupplier";
-import { TypeSupplier, Pagination } from "@/models/type";
+import { useEffect, useMemo, useState, useRef} from "react";
+import AddProductModal from "@/components/modal/product/AddProduct";
+import EditProductModal from "@/components/modal/product/EditProduct";
+import DeleteProductModal from "@/components/modal/product/DeleteProduct";
+import { TypeProduct, Pagination, ProductForm} from "@/models/type";
 
-export default function Supplier() {
-  const [suppliers, setSuppliers] = useState<TypeSupplier[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
+export default function ProductStock() {
+  const [products, setProducts] = useState<TypeProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [supplier, setSupplier] = useState("");
+  const [year, setYear] = useState("");
   const [page, setPage] = useState(1);
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<TypeSupplier | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<TypeProduct | null>(null);
+  const [editProduct, setEditProduct] = useState<ProductForm | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
 
   const limit = 10;
-  const fetchSuppliers = async () => {
+
+  const fetchProducts = async () => {
     try {
       setLoading(true);
       const res = await fetch(
-        `/api/supplier?page=${page}&limit=${limit}&search=${search}`
+        `/api/product?page=${page}&limit=${limit}&search=${search}`
       );
       const json = await res.json();
 
-      setSuppliers(json.data || []);
+      setProducts(json.data || []);
+      setEditProduct(json.data || [])
       setPagination(json.pagination);
     } catch (error) {
       console.error("Failed fetch Customers", error);
@@ -37,15 +41,21 @@ export default function Supplier() {
   };
 
   useEffect(() => {
-    fetchSuppliers();
-  }, [search, page]);
+    fetchProducts();
+  }, [page, search]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
 
   return (
     <div className="p-4 md:p-6 space-y-4">
       {/* HEADER */}
       <div>
         <h1 className="text-3xl font-semibold text-gray-800">
-          Manajemen Supplier
+          Manajemen Produk
         </h1>
       </div>
 
@@ -53,8 +63,9 @@ export default function Supplier() {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-2 md:flex-row">
           <input
+            ref={inputRef}
             type="text"
-            placeholder="Cari nama supplier"
+            placeholder="Search SKU / Nama Produk"
             className="w-full md:w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={search}
             onChange={(e) => {
@@ -62,13 +73,31 @@ export default function Supplier() {
               setSearch(e.target.value);
             }}
           />
+
+          <select
+            className="w-full md:w-44 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={supplier}
+            onChange={(e) => {
+              setPage(1);
+              setSupplier(e.target.value);
+            }}
+          >
+            <option value="">Semua Supplier</option>
+            {Array.from(
+                new Set(products.map((p) => p.supplier_name).filter(Boolean))
+                ).map((s) => (
+                <option key={`supplier-${s}`} value={s}>
+                    {s}
+                </option>
+                ))}
+          </select>
         </div>
 
         <button
           onClick={() => setOpenAdd(true)}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
         >
-          + Tambah Supplier
+          + Tambah Produk
         </button>
       </div>
 
@@ -77,11 +106,12 @@ export default function Supplier() {
         <table className="min-w-full text-sm">
           <thead className="bg-primary text-white">
             <tr>
-              <th className="px-4 py-3 text-left">ID</th>
-              <th className="px-4 py-3 text-left">Nama perusahaan</th>
-              <th className="px-4 py-3 text-left">Telepon perusahaan</th>
-              <th className="px-4 py-3 text-left">Nama sales</th>
-              <th className="px-4 py-3 text-left">Telepon sales</th>
+              <th className="px-4 py-3 text-left">SKU</th>
+              <th className="px-4 py-3 text-left">Nama Produk</th>
+              <th className="px-4 py-3 text-left">Harga</th>
+              <th className="px-4 py-3 text-left">Stock</th>
+              <th className="px-4 py-3 text-left">Expired</th>
+              <th className="px-4 py-3 text-left">Supplier</th>
               <th className="px-4 py-3 text-center">Aksi</th>
             </tr>
           </thead>
@@ -95,7 +125,7 @@ export default function Supplier() {
               </tr>
             )}
 
-            {!loading && suppliers.length === 0 && (
+            {!loading && products.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
                   Data tidak ditemukan
@@ -103,17 +133,22 @@ export default function Supplier() {
               </tr>
             )}
 
-            {suppliers.map((item) => (
+            {products.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono">{item.id}</td>
-                <td className="px-4 py-3">{item.company_name}</td>
-                <td className="px-4 py-3">{item.phone_company}</td>
-                <td className="px-4 py-3">{item.sales_name}</td>
-                <td className="px-4 py-3">{item.phone_sales}</td>
+                <td className="px-4 py-3 font-mono">{item.sku}</td>
+                <td className="px-4 py-3">{item.name}</td>
+                <td className="px-4 py-3">
+                  Rp {item.price?.toLocaleString()}
+                </td>
+                <td className="px-4 py-3">{item.stock}</td>
+                <td className="px-4 py-3">
+                  {new Date(item.exp).toLocaleDateString("id-ID")}
+                </td>
+                <td className="px-4 py-3">{item.supplier_name}</td>
                 <td className="px-4 py-3 text-center space-x-2">
                   <button
                     onClick={() => {
-                        setSelectedSupplier(item);
+                        setSelectedProduct(item);
                         setOpenEdit(true);
                     }}
                     className="rounded-md bg-yellow-500 px-3 py-1 text-xs text-white">
@@ -121,7 +156,7 @@ export default function Supplier() {
                   </button>
                   <button
                     onClick={() => {
-                        setSelectedSupplier(item);
+                        setSelectedProduct(item);
                         setOpenDelete(true);
                     }}
                     className="rounded-md bg-red-500 px-3 py-1 text-xs text-white">
@@ -170,15 +205,23 @@ export default function Supplier() {
       )}
 
       {/* MODAL */}
-        {/* MODAL */}
-      <AddSupplierModal
+      <AddProductModal
         open={openAdd}
         onClose={() => setOpenAdd(false)}
-        onSuccess={() => {
-          setPage(1);
-          fetchSuppliers();
-        }}
+        onSuccess={fetchProducts}
       />
+      <EditProductModal
+        open={openEdit}
+        product={editProduct}
+        onClose={() => setOpenEdit(false)}
+        onSuccess={fetchProducts}
+        />
+      <DeleteProductModal
+        open={openDelete}
+        product={selectedProduct}
+        onClose={() => setOpenDelete(false)}
+        onSuccess={fetchProducts}
+        />
     </div>
   );
 }
