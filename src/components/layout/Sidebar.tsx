@@ -53,7 +53,7 @@ const menu: MenuSection[] = [
         icon: BookOpen,
         children: [
           { name: "penjualan", path: "/sales" },
-          { name: "history transaksi", path: "/transaction-history" },
+          { name: "riwayat transaksi", path: "/transaction-history" },
         ],
       },
       {

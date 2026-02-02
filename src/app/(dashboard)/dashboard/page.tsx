@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   LineChart,
   Line,
@@ -10,11 +10,30 @@ import {
   ResponsiveContainer,
 } from "recharts"
 
-import { Users } from "lucide-react"
+import { Users, Printer } from "lucide-react"
+import { TypeTransaction, Pagination } from "@/models/type"
+import PrintConfirmModal from "@/components/modal/print/PrintConfirm"
+import React from "react"
+import { motion, AnimatePresence } from "framer-motion";
 
-// ==================
-// Dummy data
-// ==================
+function SummaryCard({
+  title,
+  value,
+  accent,
+}: {
+  title: string
+  value: string
+  accent: string
+}) {
+  return (
+    <div className={`rounded-lg p-4 shadow ${accent}`}>
+      <p className="text-sm opacity-70">{title}</p>
+      <p className="text-2xl font-bold">{value}</p>
+    </div>
+  )
+}
+
+
 const dailyData = [
   { name: "Mon", value: 120000 },
   { name: "Tue", value: 180000 },
@@ -35,16 +54,37 @@ const yearlyData = [
   { name: "2025", value: 61000000 },
 ]
 
-const transactions = [
-  { id: "TRX-001", customer: "Andi", total: 75000, date: "2026-01-14" },
-  { id: "TRX-002", customer: "Budi", total: 120000, date: "2026-01-14" },
-  { id: "TRX-003", customer: "Siti", total: 45000, date: "2026-01-14" },
-]
-
 export default function DashboardPOS() {
-  const [chartType, setChartType] = useState<"daily" | "monthly" | "yearly">(
-    "daily"
-  )
+  const [chartType, setChartType] = useState<"daily" | "monthly" | "yearly">( "daily")
+  const [transactions, setTransactions]=useState<TypeTransaction[]>([])
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [expandedTrxId, setExpandedTrxId] = useState<string | null>(null)
+  const [selectedTrx, setSelectedTrx] = useState<TypeTransaction | null>(null);
+
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const limit = 3;
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(
+        `/api/transaction?page=${page}&limit=${limit}&search=${search}`
+      );
+      const json = await res.json();
+
+      setTransactions(json.data || []);
+      setPagination(json.pagination);
+    } catch (error) {
+      console.error("Failed fetch transactions", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+    
+  useEffect(() => {
+    fetchTransactions();
+  }, [page, search]);
 
   const chartData =
     chartType === "daily"
@@ -52,6 +92,17 @@ export default function DashboardPOS() {
       : chartType === "monthly"
       ? monthlyData
       : yearlyData
+
+  const handleToggleDetail = (id: string) => {
+    setExpandedTrxId((prev) => (prev === id ? null : id))
+  }
+
+  const [openPrint, setOpenPrint] = useState(false);
+
+  const handlePrintClick = (trx: TypeTransaction) => {
+    setSelectedTrx(trx);
+    setOpenPrint(true);
+  };
 
   return (
     <div className="flex w-full flex-col p-4 md:p-6 space-y-6">
@@ -61,39 +112,26 @@ export default function DashboardPOS() {
         <div className="text-bold text-3xl">Suhaimi</div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="card bg-[#F5FBE6] rounded-md shadow">
-          <div className="card-body p-4">
-            <div className="flex gap-2 items-center">
-              <p className="text-2xl font-bold">3</p>
-              <Users />
-            </div>
-            <p className="text-sm opacity-70">Transaksi Hari Ini</p>
-          </div>
-        </div>
-
-        <div className="card bg-[#F5FBE6] rounded-md shadow">
-          <div className="card-body p-4">
-            <div className="flex gap-2 items-center">
-              <p className="text-2xl font-bold">365</p>
-              <Users />
-            </div>
-            <p className="text-sm opacity-70">Customer</p>
-          </div>
-        </div>
-
-        <div className="card bg-[#F5FBE6] rounded-md shadow">
-          <div className="card-body p-4">
-            <p className="text-2xl font-bold">Rp 240.000</p>
-            <p className="text-sm opacity-70">Pendapatan Hari ini</p>
-          </div>
-        </div>
-
-        <div className="card bg-[#F5FBE6] rounded-md shadow">
-          <div className="card-body p-4">
-            <p className="text-2xl font-bold">Rp 12.500.000</p>
-            <p className="text-sm opacity-70">Pengeluaran Tahun Ini</p>
-          </div>
-        </div>
+        <SummaryCard
+          title="Transaksi Hari Ini"
+          value="3"
+          accent="bg-green-100 text-green-700"
+        />
+        <SummaryCard
+          title="Customer"
+          value="365"
+          accent="bg-blue-100 text-blue-700"
+        />
+        <SummaryCard
+          title="Pendapatan Hari Ini"
+          value="Rp 240.000"
+          accent="bg-emerald-100 text-emerald-700"
+        />
+        <SummaryCard
+          title="Pengeluaran Tahun Ini"
+          value="Rp 12.500.000"
+          accent="bg-red-100 text-red-700"
+        />
       </div>
 
       {/* ================= CHART ================= */}
@@ -149,22 +187,110 @@ export default function DashboardPOS() {
                         </tr>
                     </thead>
                     <tbody className="flex flex-col w-full bg-base-200 border">
-                    {transactions.map((trx) => (
-                        <tr key={trx.id} className="hover flex w-full justify-between border py-2 px-8 items-start">
+                      {transactions.map((trx) => (
+                        <React.Fragment key={trx.id}>
+                          {/* ===== MAIN ROW ===== */}
+                          <tr className="hover w-full flex justify-between border py-2 px-8 items-start">
                             <td className="w-1/5 text-center">{trx.id}</td>
-                            <td className="w-1/5 text-center">{trx.customer}</td>
+                            <td className="w-1/5 text-center">{trx.customer_name || "-"}</td>
                             <td className="w-1/5 text-center">
-                                Rp {trx.total.toLocaleString("id-ID")}
+                              Rp {trx.grand_total.toLocaleString("id-ID")}
                             </td>
-                            <td className="w-1/5 text-center">{trx.date}</td>
-                            <td className="w-1/5 text-center"><button className="bg-green-400 hover:bg-green-500 cursor-pointer text-black px-4 py-2 rounded-md">detail</button></td>
-                        </tr>
-                    ))}
+                            <td className="w-1/5 text-center">
+                              {new Date(trx.created_at).toLocaleDateString("id-ID")}
+                            </td>
+                            <td className="w-1/5 text-center">
+                              <button
+                                onClick={() => handleToggleDetail(trx.id)}
+                                className="bg-green-400 hover:bg-green-500 px-4 py-2 rounded-md"
+                              >
+                                Detail
+                              </button>
+                            </td>
+                          </tr>
+                          {/* ===== DETAIL ROW ===== */}
+                          <AnimatePresence>
+                            {expandedTrxId === trx.id && (
+                              <motion.tr
+                                key={trx.id} // wajib key
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                                className="flex w-full bg-white px-8 py-4 border"
+                              >
+                                <td colSpan={5} className="w-full">
+                                  <div id={`trx-print-${trx.id}`} className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                      <div>
+                                        <p className="font-semibold">Transaction Detail</p>
+                                        <p className="text-sm">Cashier: {trx.cashier}</p>
+                                      </div>
+                                      <button
+                                        onClick={() => handlePrintClick(trx)}
+                                        className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
+                                      >
+                                        <Printer size={16} />
+                                        Print
+                                      </button>
+                                    </div>
+
+                                    <table className="w-full text-sm">
+                                      <thead>
+                                        <tr className="border-b">
+                                          <th className="text-left">Produk</th>
+                                          <th className="text-center">Qty</th>
+                                          <th className="text-right">Harga</th>
+                                          <th className="text-right">Discount produk</th>
+                                          <th className="text-right">Total</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {trx.transaction_detail.map((item) => (
+                                          <tr key={item.id}>
+                                            <td>{item.product_name || "-"}</td>
+                                            <td className="text-center">{item.qty}</td>
+                                            <td className="text-right">
+                                              Rp {item.price.toLocaleString("id-ID")}
+                                            </td>
+                                            <td className="text-right">
+                                              Rp {item.product_discount.toLocaleString("id-ID")}
+                                            </td>
+                                            <td className="text-right">
+                                              Rp {item.total.toLocaleString("id-ID")}
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                    <div className="flex flex-col items-end font-semibold">
+                                      <span className="text-right">
+                                        Discount customer : Rp {trx.customer_discount.toLocaleString("id-ID")}
+                                      </span>
+                                      Grand Total: Rp {trx.grand_total.toLocaleString("id-ID")}
+                                    </div>
+                                  </div>
+                                </td>
+                              </motion.tr>
+                            )}
+                          </AnimatePresence>
+                        </React.Fragment>
+                      ))}
                     </tbody>
                 </table>
                 </div>
             </div>
         </div>
+        {selectedTrx && (
+        <PrintConfirmModal
+          open={openPrint}
+          transaction={selectedTrx}
+          onClose={() => {
+            setOpenPrint(false);
+            setSelectedTrx(null);
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -48,3 +48,48 @@ export interface InputProps {
   className: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
+
+export interface TypeTransaction{
+  id: string;
+  customer_id: string;
+  customer_name: string;
+  subtotal: number;
+  product_discount_total: number;
+  customer_discount: number;
+  grand_total: number;
+  created_by: string;
+  cashier: string;
+  created_at: string;
+  transaction_detail: TypeTransactionDetail[];
+}
+
+export interface TypeTransactionDetail{
+  id: string;
+  product_id: string;
+  product_name: string;
+  product_size: string;
+  qty: number;
+  price: number;
+  product_discount: number;
+  total: number;
+}
+
+export interface PayloadTransaction{
+  customer_id: string;
+  transaction: CheckoutProduct[];
+}
+export interface CheckoutProduct {
+  product_id: string;
+  stock_id: string;
+  qty: number;
+}
+
+export interface TypeStock {
+  id: string;
+  product_id: string;
+  sku: string;
+  name: string;
+  price: number;
+  qty: number;
+  exp: string;
+}

@@ -1,52 +1,67 @@
 "use client";
 
+import React from "react"
 import { useEffect, useState } from "react";
-import { TypeCustomer, Pagination } from "@/models/type";
-import AddCustomerModal from "@/components/modal/customer/AddCustomer";
-import Link from "next/link";
+import { Pagination , TypeTransaction} from "@/models/type";
+import { motion, AnimatePresence } from "framer-motion";
+import { Printer } from "lucide-react";
+import PrintConfirmModal from "@/components/modal/print/PrintConfirm";
 
 export default function HistoryTrxPage() {
-  const [customers, setCustomers] = useState<TypeCustomer[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
-  const [openAdd, setOpenAdd] = useState(false);
+  const [transactions, setTransactions]=useState<TypeTransaction[]>([])
+  const [expandedTrxId, setExpandedTrxId] = useState<string | null>(null)
+  const [selectedTrx, setSelectedTrx] = useState<TypeTransaction | null>(null);
+  const [openPrint, setOpenPrint] = useState(false);
   
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const limit = 5;
-  const fetchCustomers = async () => {
+  const limit = 15;
+  const fetchTransactions = async () => {
     try {
       setLoading(true);
       const res = await fetch(
-        `/api/customer?page=${page}&limit=${limit}&search=${search}`
+        `/api/transaction?page=${page}&limit=${limit}&search=${search}`
       );
       const json = await res.json();
 
-      setCustomers(json.data || []);
+      setTransactions(json.data || []);
       setPagination(json.pagination);
     } catch (error) {
-      console.error("Failed fetch Customers", error);
+      console.error("Failed fetch transactions", error);
     } finally {
       setLoading(false);
     }
   };
-  
+    
   useEffect(() => {
-    fetchCustomers();
+    fetchTransactions();
   }, [page, search]);
+
+
+    const handleToggleDetail = (id: string) => {
+      setExpandedTrxId((prev) => (prev === id ? null : id))
+    }
+  
+  
+    const handlePrintClick = (trx: TypeTransaction) => {
+      setSelectedTrx(trx);
+      setOpenPrint(true);
+    };
 
   return (
     <div className="p-4 md:p-6 space-y-4">
       {/* HEADER */}
       <h1 className="text-3xl font-semibold text-gray-800">
-        Manajemen Pelanggan
+        Riwayat Transaksi
       </h1>
 
       {/* SEARCH + ACTION */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <input
           type="text"
-          placeholder="Search ID / Nama Pelanggan"
+          placeholder="Cari ID Transaksi / Nama Pelanggan"
           className="w-full md:w-64 rounded-lg border px-3 py-2 text-sm"
           value={search}
           onChange={(e) => {
@@ -54,64 +69,110 @@ export default function HistoryTrxPage() {
             setSearch(e.target.value);
           }}
         />
-
-        <button
-          onClick={() => setOpenAdd(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          + Tambah Pelanggan
-        </button>
       </div>
 
       {/* TABLE */}
       <div className="overflow-x-auto rounded-lg border bg-white">
-        <table className="min-w-full text-sm">
-          <thead className="bg-primary text-white">
-            <tr>
-              <th className="px-4 py-3 text-left">ID</th>
-              <th className="px-4 py-3 text-left">Nama</th>
-              <th className="px-4 py-3 text-left">Telepon</th>
-              <th className="px-4 py-3 text-left">Registrasi</th>
-              <th className="px-4 py-3 text-center">Aksi</th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y">
-            {loading && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center">
-                  Loading...
-                </td>
-              </tr>
-            )}
-
-            {!loading && customers.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
-                  Data tidak ditemukan
-                </td>
-              </tr>
-            )}
-
-            {customers.map((item) => (
-              <tr key={item.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono">{item.id}</td>
-                <td className="px-4 py-3">{item.name}</td>
-                <td className="px-4 py-3">{item.phone_number}</td>
-                <td className="px-4 py-3">
-                  {new Date(item.created_at).toLocaleDateString("id-ID")}
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <Link
-                    href={`/customer/${item.id}`}
-                    className="bg-green-400 hover:bg-green-500 px-4 py-2 rounded-md"
-                  >
-                    Detail
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+        <table className="flex flex-col table-zebra table-sm w-full">
+            <thead className="flex w-full bg-base-200 border bg-primary text-white">
+                <tr className="flex w-full justify-between border px-8 text-center py-2 font-semibold">
+                    <td className="w-1/5">ID</td>
+                    <td className="w-1/5">Customer</td>
+                    <td className="w-1/5">Total</td>
+                    <td className="w-1/5">Tanggal</td>
+                    <td className="w-1/5">Aksi</td>
+                </tr>
+            </thead>
+            <tbody className="flex flex-col w-full bg-base-200 border">
+              {transactions.map((trx) => (
+                <React.Fragment key={trx.id}>
+                  {/* ===== MAIN ROW ===== */}
+                  <tr className="hover w-full flex justify-between border py-2 px-8 items-start">
+                    <td className="w-1/5 text-center">{trx.id}</td>
+                    <td className="w-1/5 text-center">{trx.customer_name || "-"}</td>
+                    <td className="w-1/5 text-center">
+                      Rp {trx.grand_total.toLocaleString("id-ID")}
+                    </td>
+                    <td className="w-1/5 text-center">
+                      {new Date(trx.created_at).toLocaleDateString("id-ID")}
+                    </td>
+                    <td className="w-1/5 text-center">
+                      <button
+                        onClick={() => handleToggleDetail(trx.id)}
+                        className="bg-green-400 hover:bg-green-500 px-4 py-2 rounded-md"
+                      >
+                        Detail
+                      </button>
+                    </td>
+                  </tr>
+                  {/* ===== DETAIL ROW ===== */}
+                  <AnimatePresence>
+                    {expandedTrxId === trx.id && (
+                      <motion.tr
+                        key={trx.id} // wajib key
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className="flex w-full bg-white px-8 py-4 border"
+                      >
+                        <td colSpan={5} className="w-full">
+                          <div id={`trx-print-${trx.id}`} className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <div>
+                                <p className="font-semibold">Transaction Detail</p>
+                                <p className="text-sm">Cashier: {trx.cashier}</p>
+                              </div>
+                              <button
+                                onClick={() => handlePrintClick(trx)}
+                                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
+                              >
+                                <Printer size={16} />
+                                Print
+                              </button>
+                            </div>
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b">
+                                  <th className="text-left">Produk</th>
+                                  <th className="text-center">Qty</th>
+                                  <th className="text-right">Harga</th>
+                                  <th className="text-right">Discount produk</th>
+                                  <th className="text-right">Total</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {trx.transaction_detail.map((item) => (
+                                  <tr key={item.id}>
+                                    <td>{item.product_name || "-"}</td>
+                                    <td className="text-center">{item.qty}</td>
+                                    <td className="text-right">
+                                      Rp {item.price.toLocaleString("id-ID")}
+                                    </td>
+                                    <td className="text-right">
+                                      Rp {item.product_discount.toLocaleString("id-ID")}
+                                    </td>
+                                    <td className="text-right">
+                                      Rp {item.total.toLocaleString("id-ID")}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            <div className="flex flex-col items-end font-semibold">
+                              <span className="text-right">
+                                Discount customer : Rp {trx.customer_discount.toLocaleString("id-ID")}
+                              </span>
+                              Grand Total: Rp {trx.grand_total.toLocaleString("id-ID")}
+                            </div>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    )}
+                  </AnimatePresence>
+                </React.Fragment>
+              ))}
+            </tbody>
         </table>
       </div>
 
@@ -149,16 +210,16 @@ export default function HistoryTrxPage() {
           </button>
         </div>
       )}
-
-      {/* MODAL */}
-      <AddCustomerModal
-        open={openAdd}
-        onClose={() => setOpenAdd(false)}
-        onSuccess={() => {
-          setPage(1);
-          fetchCustomers();
-        }}
-      />
+      {selectedTrx && (
+        <PrintConfirmModal
+          open={openPrint}
+          transaction={selectedTrx}
+          onClose={() => {
+            setOpenPrint(false);
+            setSelectedTrx(null);
+          }}
+        />
+      )}
     </div>
   );
 }
