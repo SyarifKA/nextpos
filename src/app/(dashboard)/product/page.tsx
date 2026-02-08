@@ -109,10 +109,11 @@ export default function Product() {
               <th className="px-4 py-3 text-left">SKU</th>
               <th className="px-4 py-3 text-left">Nama Produk</th>
               <th className="px-4 py-3 text-left">Harga</th>
+              <th className="px-4 py-3 text-left">Discount</th>
               <th className="px-4 py-3 text-left">Stock</th>
               <th className="px-4 py-3 text-left">Expired</th>
               <th className="px-4 py-3 text-left">Supplier</th>
-              <th className="px-4 py-3 text-center">Aksi</th>
+              {/* <th className="px-4 py-3 text-center">Aksi</th> */}
             </tr>
           </thead>
 
@@ -140,12 +141,15 @@ export default function Product() {
                 <td className="px-4 py-3">
                   Rp {item.price?.toLocaleString()}
                 </td>
+                <td className="px-4 py-3">
+                  Rp {item?.discount?.toLocaleString()}
+                </td>
                 <td className="px-4 py-3">{item.stock}</td>
                 <td className="px-4 py-3">
                   {new Date(item.exp).toLocaleDateString("id-ID")}
                 </td>
                 <td className="px-4 py-3">{item.supplier_name}</td>
-                <td className="px-4 py-3 text-center space-x-2">
+                {/* <td className="px-4 py-3 text-center space-x-2">
                   <button
                     onClick={() => {
                         setSelectedProduct(item);
@@ -162,7 +166,7 @@ export default function Product() {
                     className="rounded-md bg-red-500 px-3 py-1 text-xs text-white">
                     Delete
                   </button>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>

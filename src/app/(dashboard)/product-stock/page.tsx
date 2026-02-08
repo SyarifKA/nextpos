@@ -55,7 +55,7 @@ export default function ProductStock() {
       {/* HEADER */}
       <div>
         <h1 className="text-3xl font-semibold text-gray-800">
-          Manajemen Produk
+          Manajemen Stok
         </h1>
       </div>
 
@@ -74,7 +74,7 @@ export default function ProductStock() {
             }}
           />
 
-          <select
+          {/* <select
             className="w-full md:w-44 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={supplier}
             onChange={(e) => {
@@ -90,15 +90,15 @@ export default function ProductStock() {
                     {s}
                 </option>
                 ))}
-          </select>
+          </select> */}
         </div>
 
-        <button
+        {/* <button
           onClick={() => setOpenAdd(true)}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
         >
           + Tambah Produk
-        </button>
+        </button> */}
       </div>
 
       {/* TABLE */}
@@ -112,7 +112,7 @@ export default function ProductStock() {
               <th className="px-4 py-3 text-left">Stock</th>
               <th className="px-4 py-3 text-left">Expired</th>
               <th className="px-4 py-3 text-left">Supplier</th>
-              <th className="px-4 py-3 text-center">Aksi</th>
+              {/* <th className="px-4 py-3 text-center">Aksi</th> */}
             </tr>
           </thead>
 
@@ -145,7 +145,7 @@ export default function ProductStock() {
                   {new Date(item.exp).toLocaleDateString("id-ID")}
                 </td>
                 <td className="px-4 py-3">{item.supplier_name}</td>
-                <td className="px-4 py-3 text-center space-x-2">
+                {/* <td className="px-4 py-3 text-center space-x-2">
                   <button
                     onClick={() => {
                         setSelectedProduct(item);
@@ -162,7 +162,7 @@ export default function ProductStock() {
                     className="rounded-md bg-red-500 px-3 py-1 text-xs text-white">
                     Delete
                   </button>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>

@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Search } from "lucide-react";
 import TransactionConfirmModal from "@/components/modal/transaction/CreateTransaction";
-import { TypeProduct, TypeCustomer, PayloadTransaction, TypeStock , Pagination, TypeTransaction, TypeTransactionDetail, CheckoutProduct} from "@/models/type";
+import { TypeCustomer, PayloadTransaction, Pagination} from "@/models/type";
+import { TypeStock } from "@/models/type_stock";
 
 type CartItem = {
   id: string; // stock_id (unik di cart)
@@ -17,7 +18,6 @@ type CartItem = {
 
 
 export default function PosPage() {
-  const [products, setProducts] = useState<TypeProduct[]>([]);
   const [stocks, setStocks]= useState<TypeStock[]>([])
   const [query, setQuery] = useState("");
   const [openConfirm, setOpenConfirm] = useState(false);
@@ -31,6 +31,7 @@ export default function PosPage() {
   const [openCustomerDropdown, setOpenCustomerDropdown] = useState(false);
   const [payload, setPayload] = useState<PayloadTransaction| null>(null)
   const [pagination, setPagination] = useState<Pagination | null>(null);
+  // const [discountMember, setDiscountMember] = useState<Number>(0)
 
   const customerInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,37 +85,6 @@ export default function PosPage() {
     return () => clearTimeout(id);
   }, [query]);
 
-  // Filtered products memoized
-  // const filteredProducts = useMemo(() => {
-  //   if (!searchTerm) return products;
-  //   const q = searchTerm.toLowerCase();
-  //   return products.filter(
-  //     (p) =>
-  //       p.name.toLowerCase().includes(q) ||
-  //       (p.sku || "").toLowerCase().includes(q) ||
-  //       String(p.id).includes(q)
-  //   );
-  // }, [products, searchTerm]);
-
-  // const addToCart = useCallback(
-  //   (product: TypeTransactionDetail) => {
-  //     setCartItems((prev) => {
-  //       const found = prev.find((c) => c.product_id === product.product_id);
-  //       if (found) {
-  //         // jika sudah ada, tambah quantity (jika stok cukup)
-  //         if (found.qty + 1 > Number(product.qty)) return prev;
-  //         return prev.map((c) =>
-  //           c.product_id === product.product_id ? { ...c, quantity: c.qty + 1 } : c
-  //         );
-  //       } else {
-  //         // tambah item baru
-  //         return [...prev, { ...product, quantity: 1 }];
-  //       }
-  //     });
-  //   },
-  //   [setCartItems]
-  // );
-
   const addToCart = (stock: TypeStock) => {
     setCartItems((prev) => {
       const found = prev.find((i) => i.stock_id === stock.id);
@@ -152,25 +122,40 @@ export default function PosPage() {
         .filter((i) => i.qty > 0)
     );
   };
-  // const updateCartQuantity = useCallback((id: string, newQty: number) => {
-  //   setCartItems((prev) =>
-  //     prev
-  //       .map((c) => (c.id === id ? { ...c, quantity: Math.max(0, newQty) } : c))
-  //       .filter((c) => c.qty > 0)
-  //   );
-  // }, []);
 
   const removeFromCart = useCallback((id: string) => {
     setCartItems((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
   // Total harga dan total item
+  // const totals = useMemo(() => {
+  //   const totalItems = cartItems.reduce((s, c) => s + c.qty, 0);
+  //   const totalPrice = cartItems.reduce((s, c) => (s + c.qty * Number(c.price))-Number(discountMember), 0);
+  //   return { totalItems, totalPrice };
+  // }, [cartItems, selectedCustomer]);
+
+  const subtotal = useMemo(() => {
+  return cartItems.reduce(
+    (sum, item) => sum + item.qty * Number(item.price),
+    0
+  );
+}, [cartItems]);
+
+  const discountMember = useMemo(() => {
+    if (!selectedCustomer?.id) return 0;
+    return Math.floor(subtotal * 0.02);
+  }, [selectedCustomer, subtotal]);
+
   const totals = useMemo(() => {
     const totalItems = cartItems.reduce((s, c) => s + c.qty, 0);
-    const totalPrice = cartItems.reduce((s, c) => s + c.qty * Number(c.price), 0);
-    return { totalItems, totalPrice };
-  }, [cartItems]);
 
+    return {
+      totalItems,
+      totalPrice: subtotal - discountMember,
+    };
+  }, [cartItems, subtotal, discountMember]);
+
+  
   // Reset cart (mis. saat transaksi selesai)
   const clearCart = useCallback(() => setCartItems([]), []);
 
@@ -207,9 +192,6 @@ export default function PosPage() {
     setPayload(payload);
     setOpenConfirm(true);
   };
-
-
-  // console.log(cartItems)
 
   return (
     <div className="w-full min-h-screen p-6 bg-gray-50">
@@ -272,10 +254,6 @@ export default function PosPage() {
                 {stocks.map((p) => (
                   <tr
                     key={p.id}
-                    // onClick={() => addToCart({
-                    //   stock_id: p.id,
-                    //   product_id: 
-                    // })}
                     onClick={() => addToCart(p)}
                     className="cursor-pointer hover:bg-gray-50"
                   >
@@ -355,26 +333,6 @@ export default function PosPage() {
                     <td className="p-2">{c.name}</td>
                     <td className="p-2">
                       <div className="flex items-center gap-2 text-white">
-                        {/* <button
-                          onClick={() =>
-                            updateCartQuantity(c.id, Math.max(0, c.qty - 1))
-                          }
-                          className="px-2 py-1 border bg-red-500 rounded"
-                        >
-                          -
-                        </button> */}
-                        {/* <input
-                          value={c.qty}
-                          onChange={(e) => {
-                            const val = Number(e.target.value) || 0;
-                            const limited = Math.min(val, Number(c.qty));
-                            updateCartQuantity(c.id, limited);
-                          }}
-                          className="w-12 text-center border text-black rounded px-1 py-1"
-                          type="number"
-                          min={0}
-                          max={c.qty}
-                        /> */}
                         <button
                             onClick={() => updateCartQuantity(c.id, c.qty - 1)}
                             className="px-2 py-1 border bg-red-500 rounded"
@@ -392,14 +350,6 @@ export default function PosPage() {
                           min={0}
                           max={c.max_qty}
                         />
-                        {/* <button
-                          onClick={() =>
-                            updateCartQuantity(c.id, Math.min(Number(c.qty), c.qty + 1))
-                          }
-                          className="px-2 py-1 border bg-blue-500 rounded"
-                        >
-                          +
-                        </button> */}
                         <button
                             onClick={() => updateCartQuantity(c.id, c.qty + 1)}
                             className="px-2 py-1 border bg-blue-500 rounded"
@@ -407,7 +357,6 @@ export default function PosPage() {
                             +
                           </button>
                       </div>
-                      {/* <div className="text-xs text-gray-400">Stok: {c.qty}</div> */}
                       <div className="text-xs text-gray-400">
                         Stok: {c.max_qty}
                       </div>
@@ -440,6 +389,10 @@ export default function PosPage() {
             <div className="flex justify-between text-sm text-gray-600">
               <div>Total item</div>
               <div>{totals.totalItems}</div>
+            </div>
+            <div className="flex justify-between text-sm text-gray-600">
+              <div>Discount member</div>
+              <div>Rp {discountMember.toLocaleString()}</div>
             </div>
             <div className="flex justify-between text-lg font-semibold mt-2">
               <div>Total</div>
@@ -500,11 +453,6 @@ export default function PosPage() {
             </div>
             <div className="flex gap-3 mt-4">
               <button
-                // onClick={() => {
-                //   if (cartItems.length === 0) return;
-                //   alert(`Transaksi selesai. Total: Rp ${totals.totalPrice.toLocaleString()}`);
-                //   clearCart();
-                // }}
                 onClick={() => handleTransaction()}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded"
               >

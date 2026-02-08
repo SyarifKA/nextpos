@@ -5,13 +5,13 @@ import AddProductModal from "@/components/modal/product/AddProduct";
 import EditProductModal from "@/components/modal/product/EditProduct";
 import DeleteProductModal from "@/components/modal/product/DeleteProduct";
 import { TypeProduct, Pagination, ProductForm} from "@/models/type";
+import { TypeStockMovement } from "@/models/type_stock";
 
 export default function StockHistory() {
-  const [products, setProducts] = useState<TypeProduct[]>([]);
+  const [stockMovement, setStockMovement] = useState<TypeStockMovement[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [supplier, setSupplier] = useState("");
-  const [year, setYear] = useState("");
   const [page, setPage] = useState(1);
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -22,16 +22,16 @@ export default function StockHistory() {
 
   const limit = 10;
 
-  const fetchProducts = async () => {
+  const fetchstockMovement = async () => {
     try {
       setLoading(true);
       const res = await fetch(
-        `/api/product?page=${page}&limit=${limit}&search=${search}`
+        `/api/stock-movement?page=${page}&limit=${limit}&search=${search}`
       );
       const json = await res.json();
 
-      setProducts(json.data || []);
-      setEditProduct(json.data || [])
+      setStockMovement(json.data || []);
+      // setEditProduct(json.data || [])
       setPagination(json.pagination);
     } catch (error) {
       console.error("Failed fetch Customers", error);
@@ -41,7 +41,7 @@ export default function StockHistory() {
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchstockMovement();
   }, [page, search]);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -50,12 +50,28 @@ export default function StockHistory() {
     inputRef.current?.focus();
   }, []);
 
+  const getStockTypeLabel = (type: string) => {
+    switch (type) {
+      case "sale":
+        return "Penjualan";
+      case "stock_in":
+        return "Stok Masuk";
+      case "stock_out":
+        return "Stok Keluar";
+      case "supplier_return":
+        return "Retur ke supplier";
+      default:
+        return type;
+    }
+  };
+
+
   return (
     <div className="p-4 md:p-6 space-y-4">
       {/* HEADER */}
       <div>
         <h1 className="text-3xl font-semibold text-gray-800">
-          Manajemen Produk
+          Riwayat stock
         </h1>
       </div>
 
@@ -74,7 +90,7 @@ export default function StockHistory() {
             }}
           />
 
-          <select
+          {/* <select
             className="w-full md:w-44 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={supplier}
             onChange={(e) => {
@@ -84,21 +100,14 @@ export default function StockHistory() {
           >
             <option value="">Semua Supplier</option>
             {Array.from(
-                new Set(products.map((p) => p.supplier_name).filter(Boolean))
+                new Set(stockMovement.map((p) => p.supplier_name).filter(Boolean))
                 ).map((s) => (
                 <option key={`supplier-${s}`} value={s}>
                     {s}
                 </option>
                 ))}
-          </select>
+          </select> */}
         </div>
-
-        <button
-          onClick={() => setOpenAdd(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
-        >
-          + Tambah Produk
-        </button>
       </div>
 
       {/* TABLE */}
@@ -108,11 +117,10 @@ export default function StockHistory() {
             <tr>
               <th className="px-4 py-3 text-left">SKU</th>
               <th className="px-4 py-3 text-left">Nama Produk</th>
-              <th className="px-4 py-3 text-left">Harga</th>
+              <th className="px-4 py-3 text-left">Tipe</th>
               <th className="px-4 py-3 text-left">Stock</th>
-              <th className="px-4 py-3 text-left">Expired</th>
-              <th className="px-4 py-3 text-left">Supplier</th>
-              <th className="px-4 py-3 text-center">Aksi</th>
+              <th className="px-4 py-3 text-left">Tanggal</th>
+              <th className="px-4 py-3 text-left">Dibuat oleh</th>
             </tr>
           </thead>
 
@@ -125,7 +133,7 @@ export default function StockHistory() {
               </tr>
             )}
 
-            {!loading && products.length === 0 && (
+            {!loading && stockMovement.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
                   Data tidak ditemukan
@@ -133,36 +141,26 @@ export default function StockHistory() {
               </tr>
             )}
 
-            {products.map((item) => (
+            {stockMovement.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono">{item.sku}</td>
-                <td className="px-4 py-3">{item.name}</td>
+                <td className="px-4 py-3">{item.product_name}</td>
                 <td className="px-4 py-3">
-                  Rp {item.price?.toLocaleString()}
+                  <span
+                    className={`rounded px-2 py-1 text-xs font-medium
+                      ${item.type === "sale" && "bg-red-100 text-red-700"}
+                      ${item.type === "supplier_return" && "bg-red-100 text-red-700"}
+                      ${item.type === "stock_in" && "bg-green-100 text-green-700"}
+                    `}
+                  >
+                  {getStockTypeLabel(item.type)}
+                  </span>
                 </td>
-                <td className="px-4 py-3">{item.stock}</td>
+                <td className="px-4 py-3">{item.qty}</td>
                 <td className="px-4 py-3">
-                  {new Date(item.exp).toLocaleDateString("id-ID")}
+                  {new Date(item.created_at).toLocaleDateString("id-ID")}
                 </td>
-                <td className="px-4 py-3">{item.supplier_name}</td>
-                <td className="px-4 py-3 text-center space-x-2">
-                  <button
-                    onClick={() => {
-                        setSelectedProduct(item);
-                        setOpenEdit(true);
-                    }}
-                    className="rounded-md bg-yellow-500 px-3 py-1 text-xs text-white">
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                        setSelectedProduct(item);
-                        setOpenDelete(true);
-                    }}
-                    className="rounded-md bg-red-500 px-3 py-1 text-xs text-white">
-                    Delete
-                  </button>
-                </td>
+                <td className="px-4 py-3">{item.created_by_name}</td>
               </tr>
             ))}
           </tbody>
@@ -205,23 +203,23 @@ export default function StockHistory() {
       )}
 
       {/* MODAL */}
-      <AddProductModal
+      {/* <AddProductModal
         open={openAdd}
         onClose={() => setOpenAdd(false)}
-        onSuccess={fetchProducts}
+        onSuccess={fetchstockMovement}
       />
       <EditProductModal
         open={openEdit}
         product={editProduct}
         onClose={() => setOpenEdit(false)}
-        onSuccess={fetchProducts}
+        onSuccess={fetchstockMovement}
         />
       <DeleteProductModal
         open={openDelete}
         product={selectedProduct}
         onClose={() => setOpenDelete(false)}
-        onSuccess={fetchProducts}
-        />
+        onSuccess={fetchstockMovement}
+        /> */}
     </div>
   );
 }

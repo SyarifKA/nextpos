@@ -5,6 +5,7 @@ export type TypeProduct = {
   price: number;
   stock: number;
   exp: string;
+  discount: number;
   supplier_name: string;
 };
 
@@ -63,6 +64,12 @@ export interface TypeTransaction{
   transaction_detail: TypeTransactionDetail[];
 }
 
+export interface TypeTransactionCustomer{
+  total_amount: number;
+  total_transaction: number;
+  transaction: TypeTransaction[];
+}
+
 export interface TypeTransactionDetail{
   id: string;
   product_id: string;
@@ -84,12 +91,3 @@ export interface CheckoutProduct {
   qty: number;
 }
 
-export interface TypeStock {
-  id: string;
-  product_id: string;
-  sku: string;
-  name: string;
-  price: number;
-  qty: number;
-  exp: string;
-}
