@@ -113,7 +113,7 @@ export default function CustomerDetailPage() {
           </button>
         </div>
 
-        {/* SUMMARY (HARDCODE) */}
+        {/* SUMMARY */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 border-b bg-gray-50">
           <div className="rounded-lg bg-white p-4 border">
             <p className="text-xs text-gray-500">Jumlah Transaksi</p>

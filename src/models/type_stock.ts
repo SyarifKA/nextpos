@@ -1,9 +1,12 @@
 export interface TypeStock {
   id: string;
   product_id: string;
+  size: string;
   sku: string;
   name: string;
   price: number;
+  discount: number;
+  supplier_id: string;
   qty: number;
   exp: string;
 }

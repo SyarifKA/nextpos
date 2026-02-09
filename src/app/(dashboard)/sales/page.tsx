@@ -11,6 +11,7 @@ type CartItem = {
   product_id: string;
   stock_id: string;
   name: string;
+  discount: number;
   price: number;
   qty: number;
   max_qty: number;
@@ -104,6 +105,7 @@ export default function PosPage() {
           stock_id: stock.id,
           name: stock.name,
           price: stock.price,
+          discount: stock.discount,
           qty: 1,
           max_qty: stock.qty,
         },
@@ -127,24 +129,27 @@ export default function PosPage() {
     setCartItems((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
-  // Total harga dan total item
-  // const totals = useMemo(() => {
-  //   const totalItems = cartItems.reduce((s, c) => s + c.qty, 0);
-  //   const totalPrice = cartItems.reduce((s, c) => (s + c.qty * Number(c.price))-Number(discountMember), 0);
-  //   return { totalItems, totalPrice };
-  // }, [cartItems, selectedCustomer]);
-
   const subtotal = useMemo(() => {
-  return cartItems.reduce(
-    (sum, item) => sum + item.qty * Number(item.price),
-    0
-  );
-}, [cartItems]);
+    return cartItems.reduce(
+      (sum, item) => sum + item.qty * Number(item.price - item.discount),
+      0
+    );
+  }, [cartItems]);
+
 
   const discountMember = useMemo(() => {
     if (!selectedCustomer?.id) return 0;
+
+    // ❗ cek apakah ada produk yang punya discount
+    const hasProductDiscount = cartItems.some(
+      (item) => item.discount > 0
+    );
+
+    if (hasProductDiscount) return 0;
+
     return Math.floor(subtotal * 0.02);
-  }, [selectedCustomer, subtotal]);
+  }, [selectedCustomer, subtotal, cartItems]);
+
 
   const totals = useMemo(() => {
     const totalItems = cartItems.reduce((s, c) => s + c.qty, 0);
@@ -158,6 +163,18 @@ export default function PosPage() {
   
   // Reset cart (mis. saat transaksi selesai)
   const clearCart = useCallback(() => setCartItems([]), []);
+
+  const resetTransaction = useCallback(() => {
+    setQuery("");
+    setSearchTerm("");
+    setCartItems([]);
+    setSelectedCustomer(null);
+    setCustomerQuery("");
+    setOpenCustomerDropdown(false);
+
+    inputRef.current?.focus();
+  }, []);
+
 
   const filteredCustomers = useMemo(() => {
     if (!customerQuery) return customers;
@@ -224,13 +241,11 @@ export default function PosPage() {
             />
           </div>
           <button
-            onClick={() => {
-              setQuery("");
-            }}
-            className="px-4 py-2 bg-primary text-white rounded-lg"
-          >
-            Reset
-          </button>
+              onClick={resetTransaction}
+              className="px-4 py-2 bg-primary text-white rounded-lg"
+            >
+              Reset
+            </button>
         </div>
       </header>
 
@@ -247,6 +262,8 @@ export default function PosPage() {
                   <th className="p-3">Nama</th>
                   <th className="p-3">Stok</th>
                   <th className="p-3">Expired</th>
+                  <th className="p-3">Harga normal</th>
+                  <th className="p-3">Discount</th>
                   <th className="p-3">Harga</th>
                 </tr>
               </thead>
@@ -264,6 +281,8 @@ export default function PosPage() {
                       {new Date(p.exp).toLocaleDateString("id-ID")}
                     </td>
                     <td className="p-3">Rp {p.price.toLocaleString()}</td>
+                    <td className="p-3">Rp {p.discount.toLocaleString()}</td>
+                    <td className="p-3">Rp {(p.price - p.discount).toLocaleString()}</td>
                   </tr>
                 ))}
 
@@ -361,7 +380,7 @@ export default function PosPage() {
                         Stok: {c.max_qty}
                       </div>
                     </td>
-                    <td className="p-2">Rp {(Number(c.price) * c.qty).toLocaleString()}</td>
+                    <td className="p-2">Rp {(Number(c.price - c.discount) * c.qty).toLocaleString()}</td>
                     <td className="p-2">
                       <button
                         onClick={() => removeFromCart(c.id)}
@@ -467,6 +486,11 @@ export default function PosPage() {
               </button>
             </div>
           </div>
+          {discountMember === 0 && selectedCustomer && cartItems.some(i => i.discount > 0) && (
+            <div className="text-xs text-orange-500 mt-1">
+              Diskon member tidak berlaku karena ada produk promo
+            </div>
+          )}
         </aside>
       </main>
       {payload && (

@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AddSupplierModal from "@/components/modal/supplier/AddSupplier";
-// import EditSupplierModal from "@/components/modal/supplier/EditSupplier";
-// import DeleteSupplierModal from "@/components/modal/supplier/DeleteSupplier";
-import { TypeSupplier, Pagination } from "@/models/type";
+import { Pagination } from "@/models/type";
+import { TypeSupplier } from "@/models/type_supplier";
+import Link from "next/link";
 
 export default function Supplier() {
   const [suppliers, setSuppliers] = useState<TypeSupplier[]>([]);
@@ -110,7 +110,7 @@ export default function Supplier() {
                 <td className="px-4 py-3">{item.phone_company}</td>
                 <td className="px-4 py-3">{item.sales_name}</td>
                 <td className="px-4 py-3">{item.phone_sales}</td>
-                <td className="px-4 py-3 text-center space-x-2">
+                {/* <td className="px-4 py-3 text-center space-x-2">
                   <button
                     onClick={() => {
                         setSelectedSupplier(item);
@@ -127,6 +127,14 @@ export default function Supplier() {
                     className="rounded-md bg-red-500 px-3 py-1 text-xs text-white">
                     Delete
                   </button>
+                </td> */}
+                <td className="px-4 py-3 text-center">
+                  <Link
+                    href={`/supplier/${item.id}`}
+                    className="bg-green-400 hover:bg-green-500 px-4 py-2 rounded-md"
+                  >
+                    Detail
+                  </Link>
                 </td>
               </tr>
             ))}

@@ -45,37 +45,40 @@ const InputField: React.FC<InputProps> = ({
   );
 };
 
-interface CustomerForm {
+interface SupplierForm {
     id: string;
-    name: string;
-    phone_number: string;
-    email: string;
+    company_name: string;
+    phone_company: string;
+    sales_name: string;
+    phone_sales: string;
 }
 
 interface ModalContentProps {
   data: {
     id: string;
-    name: string;
-    phone_number: string;
-    email: string;
+    company_name: string;
+    sales_name: string;
+    phone_company: string;
+    phone_sales: string;
   } | null;
   onClose: () => void;
-  onSubmit: (data: CustomerForm) => void;
+  onSubmit: (data: SupplierForm) => void;
 }
 
 const ModalContent: React.FC<ModalContentProps> = ({data, onClose, onSubmit }) => {
-    const [local, setLocal] = React.useState<CustomerForm>({
+    const [local, setLocal] = React.useState<SupplierForm>({
     id: data?.id ?? "",
-    name: data?.name ?? "",
-    phone_number: data?.phone_number ?? "",
-    email: data?.email ?? "",
+    company_name: data?.company_name ?? "",
+    phone_company: data?.phone_company ?? "",
+    phone_sales: data?.phone_sales ?? "",
+    sales_name: data?.sales_name ?? "",
     });
 
 
   return (
     <div className="flex flex-col w-full p-6 text-start">
       <h2 className="text-2xl font-semibold text-primary">
-        Edit data {data?.name}
+        Edit data {data?.company_name}
       </h2>
       <p className="text-gray-600 text-md mt-1">
         Masukkan informasi pelanggan untuk ditambahkan ke sistem.
@@ -83,27 +86,34 @@ const ModalContent: React.FC<ModalContentProps> = ({data, onClose, onSubmit }) =
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <InputField
-            label="Nama"
-            value={local.name}
+            label="Nama perusahaan"
+            value={local.company_name}
             className=""
-            placeholder="Contoh: Fulan"
-            onChange={(e) => setLocal((s) => ({ ...s, name: e.target.value }))}
+            placeholder="Contoh: PT Segar makmur"
+            onChange={(e) => setLocal((s) => ({ ...s, company_name: e.target.value }))}
             />
             <InputField
-            label="Nomor telpon"
+            label="Nomor telepon perusahaan"
             type="text"
-            value={local.phone_number}
+            value={local.phone_company}
             className=""
             placeholder="Nomor telpon"
-            onChange={(e) => setLocal((s) => ({ ...s, phone_number: e.target.value }))}
+            onChange={(e) => setLocal((s) => ({ ...s, phone_company: e.target.value }))}
             />
             <InputField
-            label="Email"
-            type="email"
+            label="Nama sales"
+            value={local.sales_name}
             className=""
-            value={local.email}
-            placeholder="example@gmail.com"
-            onChange={(e) => setLocal((s) => ({ ...s, email: e.target.value }))}
+            placeholder="Contoh: Fulan"
+            onChange={(e) => setLocal((s) => ({ ...s, sales_name: e.target.value }))}
+            />
+            <InputField
+            label="Nomor telepon sales"
+            type="text"
+            value={local.phone_sales}
+            className=""
+            placeholder="Nomor telpon"
+            onChange={(e) => setLocal((s) => ({ ...s, phone_sales: e.target.value }))}
             />
           </div>
 
@@ -126,14 +136,14 @@ const ModalContent: React.FC<ModalContentProps> = ({data, onClose, onSubmit }) =
   );
 };
 
-interface EditCustomerModalProps {
+interface EditSupplierModalProps {
   open: boolean;
-  data: CustomerForm | null;
+  data: SupplierForm | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
+const EditSupplierModal: React.FC<EditSupplierModalProps> = ({
   open,
   data,
   onClose,
@@ -141,30 +151,33 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
 }) => {
   const reactRootRef = useRef<Root | null>(null);
 
-  const handleSubmit = async (data: CustomerForm) => {
-    const res = await fetch(`/api/customer/${data.id}`, {
+  const handleSubmit = async (data: SupplierForm) => {
+    const res = await fetch(`/api/supplier/${data.id}`, {
       method: "PUT",
       body: JSON.stringify({
-        name: data.name,
-        phone_number: data.phone_number,
-        email: data.email
+        company_name: data.company_name,
+        phone_company: data.phone_company,
+        sales_name: data.sales_name,
+        phone_sales: data.phone_sales
       }),
     });
 
     if (res.ok) {
       onSuccess();
+      onClose()
       MySwal.close();
 
       MySwal.fire({
         icon: "success",
-        title: "Customer Edited!",
+        title: "Supplier Edited!",
         timer: 1200,
         showConfirmButton: false,
       });
     } else {
+        onClose()
       MySwal.fire({
         icon: "error",
-        title: "Failed to Edit Customer",
+        title: "Failed to Edit Supplier",
         timer: 1400,
         showConfirmButton: false,
       });
@@ -209,4 +222,4 @@ const EditCustomerModal: React.FC<EditCustomerModalProps> = ({
   return null;
 };
 
-export default EditCustomerModal;
+export default EditSupplierModal;

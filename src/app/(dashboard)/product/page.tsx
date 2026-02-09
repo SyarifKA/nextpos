@@ -149,24 +149,6 @@ export default function Product() {
                   {new Date(item.exp).toLocaleDateString("id-ID")}
                 </td>
                 <td className="px-4 py-3">{item.supplier_name}</td>
-                {/* <td className="px-4 py-3 text-center space-x-2">
-                  <button
-                    onClick={() => {
-                        setSelectedProduct(item);
-                        setOpenEdit(true);
-                    }}
-                    className="rounded-md bg-yellow-500 px-3 py-1 text-xs text-white">
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                        setSelectedProduct(item);
-                        setOpenDelete(true);
-                    }}
-                    className="rounded-md bg-red-500 px-3 py-1 text-xs text-white">
-                    Delete
-                  </button>
-                </td> */}
               </tr>
             ))}
           </tbody>

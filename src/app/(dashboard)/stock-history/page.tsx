@@ -60,6 +60,8 @@ export default function StockHistory() {
         return "Stok Keluar";
       case "supplier_return":
         return "Retur ke supplier";
+      case "waste":
+        return "Dibuang";
       default:
         return type;
     }
@@ -150,6 +152,7 @@ export default function StockHistory() {
                     className={`rounded px-2 py-1 text-xs font-medium
                       ${item.type === "sale" && "bg-red-100 text-red-700"}
                       ${item.type === "supplier_return" && "bg-red-100 text-red-700"}
+                      ${item.type === "waste" && "bg-red-100 text-red-700"}
                       ${item.type === "stock_in" && "bg-green-100 text-green-700"}
                     `}
                   >

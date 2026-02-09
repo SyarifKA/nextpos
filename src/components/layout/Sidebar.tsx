@@ -10,7 +10,7 @@ import {
   Grid2x2Plus,
   Power,
   Home,
-  Mail
+  Warehouse
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
@@ -58,7 +58,7 @@ const menu: MenuSection[] = [
       },
       {
         name: "Stok",
-        icon: BookOpen,
+        icon: Warehouse,
         children: [
           { name: "stok produk", path: "/product-stock" },
           { name: "history stok", path: "/stock-history" },
