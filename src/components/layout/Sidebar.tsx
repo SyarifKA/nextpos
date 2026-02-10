@@ -10,12 +10,14 @@ import {
   Grid2x2Plus,
   Power,
   Home,
-  Warehouse
+  Warehouse,
+  BanknoteArrowDown
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/utils/cn";
 import ExitModal from "../modal/exit/exit";
+import { useAuth } from "@/lib/context/AuthContext";
 
 type MenuSubItem = {
   name: string;
@@ -84,6 +86,11 @@ const menu: MenuSection[] = [
         icon: Truck,
         path: "/supplier"
       },
+      {
+        name: "Pengeluaran",
+        icon: BanknoteArrowDown,
+        path: "/cost"
+      },
     ]
     },
 ];
@@ -92,6 +99,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [openExit, setOpenExit] = useState(false);
+  const { username, role } = useAuth();
 
   const toggleMenu = (name: string) => {
     setOpen((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -200,12 +208,12 @@ export default function Sidebar() {
         />
         <div className="flex flex-col items-start w-full max-w-37.5">
           <span className="font-semibold text-black truncate max-w-30">
-            Suhaimi
+            {username}
           </span>
 
           <div className="flex gap-2 text-sm items-center">
             <span className="truncate max-w-26">
-              Admin
+              {role}
             </span>
             {/* <span className="bg-gray-300 px-1 rounded-md">+ 2</span> */}
           </div>

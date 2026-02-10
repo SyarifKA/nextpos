@@ -15,6 +15,7 @@ import { TypeTransaction, Pagination } from "@/models/type"
 import PrintConfirmModal from "@/components/modal/print/PrintConfirm"
 import React from "react"
 import { motion, AnimatePresence } from "framer-motion";
+import { DashboardData } from "@/models/type_dashboard"
 
 function SummaryCard({
   title,
@@ -22,7 +23,7 @@ function SummaryCard({
   accent,
 }: {
   title: string
-  value: string
+  value: string | undefined
   accent: string
 }) {
   return (
@@ -57,6 +58,7 @@ const yearlyData = [
 export default function DashboardPOS() {
   const [chartType, setChartType] = useState<"daily" | "monthly" | "yearly">( "daily")
   const [transactions, setTransactions]=useState<TypeTransaction[]>([])
+  const [dataDashboard, setDataDashboard]=useState<DashboardData| null>(null)
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [expandedTrxId, setExpandedTrxId] = useState<string | null>(null)
@@ -64,7 +66,24 @@ export default function DashboardPOS() {
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const limit = 3;
+  const limit = 5;
+
+  const fetchDataDashboard = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(
+        `/api/dashboard`
+      );
+      const json = await res.json();
+
+      setDataDashboard(json.data);
+    } catch (error) {
+      console.error("Failed fetch data dashboard", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchTransactions = async () => {
     try {
       setLoading(true);
@@ -81,17 +100,30 @@ export default function DashboardPOS() {
       setLoading(false);
     }
   };
-    
+
+
+  useEffect(() => {
+    fetchDataDashboard();
+  }, []);
+
   useEffect(() => {
     fetchTransactions();
   }, [page, search]);
 
   const chartData =
     chartType === "daily"
-      ? dailyData
+      ? dataDashboard?.daily_data
       : chartType === "monthly"
-      ? monthlyData
-      : yearlyData
+      ? dataDashboard?.monthly_data
+      : dataDashboard?.yearly_data
+
+  const chartColor =
+    chartType === "daily"
+      ? "#22c55e"   // green
+      : chartType === "monthly"
+      ? "#3b82f6"   // blue
+      : "#f59e0b";  // amber
+
 
   const handleToggleDetail = (id: string) => {
     setExpandedTrxId((prev) => (prev === id ? null : id))
@@ -114,22 +146,22 @@ export default function DashboardPOS() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <SummaryCard
           title="Transaksi Hari Ini"
-          value="3"
+          value={`${dataDashboard?.total_transaction_per_day.toLocaleString()}`}
           accent="bg-green-100 text-green-700"
         />
         <SummaryCard
           title="Customer"
-          value="365"
+          value={`${dataDashboard?.total_customers.toLocaleString()}`}
           accent="bg-blue-100 text-blue-700"
         />
         <SummaryCard
           title="Pendapatan Hari Ini"
-          value="Rp 240.000"
+          value={`Rp ${dataDashboard?.amount_transaction_per_day.toLocaleString()}`}
           accent="bg-emerald-100 text-emerald-700"
         />
         <SummaryCard
           title="Pengeluaran Tahun Ini"
-          value="Rp 12.500.000"
+          value={`Rp ${dataDashboard?.cost_per_year.toLocaleString()}`}
           accent="bg-red-100 text-red-700"
         />
       </div>
@@ -155,18 +187,33 @@ export default function DashboardPOS() {
 
           <div className="h-65">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <XAxis dataKey="name" />
+              <LineChart data={chartData}  margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#22c55e" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+
+                {/* <XAxis dataKey="name" padding={{ left: 20, right: 20 }}/> */}
+                <XAxis dataKey="name"/>
                 <YAxis />
                 <Tooltip />
+                <stop offset="5%" stopColor={chartColor} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={chartColor} stopOpacity={0.1} />
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="currentColor"
-                  strokeWidth={2}
+                  stroke={chartColor}
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                  isAnimationActive={true}
+                  animationDuration={800}
                 />
               </LineChart>
             </ResponsiveContainer>
+
           </div>
         </div>
       </div>

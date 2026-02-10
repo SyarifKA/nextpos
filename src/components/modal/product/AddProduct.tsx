@@ -4,7 +4,8 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import React, { useEffect, useRef } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { TypeSupplier, InputProps} from "@/models/type";
+import { InputProps} from "@/models/type";
+import { TypeSupplier } from "@/models/type_supplier";
 
 const MySwal = withReactContent(Swal);
 

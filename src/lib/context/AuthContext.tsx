@@ -13,6 +13,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   token: string | null;
   loading: boolean;
+  username: string | null;
+  role: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   getToken: () => Promise<string>;
@@ -31,6 +33,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+
 
   // ===============================
   // CHECK AUTH ON FIRST LOAD
@@ -40,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (cookieUtils.hasAuthToken() && storedToken) {
       setToken(storedToken);
+      setUsername(cookieUtils.getUsername() ?? null);
+      setRole(cookieUtils.getRole() ?? null);
       setIsAuthenticated(true);
     } else {
       setToken(null);
@@ -97,15 +104,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      const accessToken = json?.data?.token?.token;
+      const token = json?.data?.token?.token
+      const { username, role } = json.data;
 
-      if (!accessToken) {
+      if (!token) {
         console.error("Token not found:", json);
         return false;
       }
 
-      cookieUtils.setAuthToken(accessToken);
-      setToken(accessToken);
+      cookieUtils.setAuthToken(token);
+      cookieUtils.setUsername(username);
+      cookieUtils.setRole(role);
+      setToken(token);
+      setUsername(username);
+      setRole(role);
       setIsAuthenticated(true);
 
       return true;
@@ -135,7 +147,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ===============================
   const logout = () => {
     cookieUtils.removeAuthToken();
+    cookieUtils.removeUserMeta();
+
     setToken(null);
+    setUsername(null);
+    setRole(null);
     setIsAuthenticated(false);
     router.replace("/login");
   };
@@ -192,6 +208,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         token,
         loading,
+        username,
+        role,
         login,
         logout,
         getToken,

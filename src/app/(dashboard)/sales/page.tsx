@@ -5,6 +5,7 @@ import { Search } from "lucide-react";
 import TransactionConfirmModal from "@/components/modal/transaction/CreateTransaction";
 import { TypeCustomer, PayloadTransaction, Pagination} from "@/models/type";
 import { TypeStock } from "@/models/type_stock";
+import { useAuth } from "@/lib/context/AuthContext";
 
 type CartItem = {
   id: string; // stock_id (unik di cart)
@@ -32,7 +33,7 @@ export default function PosPage() {
   const [openCustomerDropdown, setOpenCustomerDropdown] = useState(false);
   const [payload, setPayload] = useState<PayloadTransaction| null>(null)
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  // const [discountMember, setDiscountMember] = useState<Number>(0)
+  const { username } = useAuth();
 
   const customerInputRef = useRef<HTMLInputElement>(null);
 
@@ -220,7 +221,7 @@ export default function PosPage() {
               <div className="text-sm text-gray-500">Tanggal</div>
               <div className="bg-gray-100 px-3 py-2 rounded">{new Date().toLocaleDateString()}</div>
               <div className="text-sm text-gray-500">Kasir</div>
-              <div className="bg-gray-100 px-3 py-2 rounded">Suhaimi</div>
+              <div className="bg-gray-100 px-3 py-2 rounded">{username}</div>
             </div>
             <div className="bg-gray-50 p-4 rounded-md text-right font-semibold">
               <div className="text-sm text-gray-500">Total Belanja</div>
