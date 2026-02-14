@@ -43,7 +43,7 @@ export default function DashboardPOS() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [expandedTrxId, setExpandedTrxId] = useState<string | null>(null)
   const [selectedTrx, setSelectedTrx] = useState<TypeTransaction | null>(null);
-  const {role} = useAuth()
+  const {role, username} = useAuth()
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -122,7 +122,7 @@ export default function DashboardPOS() {
       {/* ================= SUMMARY ================= */}
       <div className="flex flex-col gap-2">
         <div className="text-semibold text-2xl">Halo! Selamat datang</div>
-        <div className="text-bold text-3xl">Suhaimi</div>
+        <div className="text-bold text-3xl">{username}</div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <SummaryCard
@@ -212,7 +212,7 @@ export default function DashboardPOS() {
                     <thead className="flex w-full bg-base-200 border bg-primary text-white">
                         <tr className="flex w-full justify-between border px-8 text-center py-2 font-semibold">
                             <td className="w-1/5">ID</td>
-                            <td className="w-1/5">Customer</td>
+                            <td className="w-1/5">Pelanggan</td>
                             <td className="w-1/5">Total</td>
                             <td className="w-1/5">Tanggal</td>
                             <td className="w-1/5">Aksi</td>
@@ -255,8 +255,8 @@ export default function DashboardPOS() {
                                   <div id={`trx-print-${trx.id}`} className="space-y-3">
                                     <div className="flex justify-between items-center">
                                       <div>
-                                        <p className="font-semibold">Transaction Detail</p>
-                                        <p className="text-sm">Cashier: {trx.cashier}</p>
+                                        <p className="font-semibold">Detail Transaksi</p>
+                                        <p className="text-sm">Kasir: {trx.cashier}</p>
                                       </div>
                                       <button
                                         onClick={() => handlePrintClick(trx)}

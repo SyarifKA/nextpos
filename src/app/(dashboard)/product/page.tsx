@@ -106,7 +106,7 @@ export default function Product() {
         <table className="min-w-full text-sm">
           <thead className="bg-primary text-white">
             <tr>
-              <th className="px-4 py-3 text-left">SKU</th>
+              <th className="px-4 py-3 text-left">Barcode</th>
               <th className="px-4 py-3 text-left">Nama Produk</th>
               <th className="px-4 py-3 text-left">Harga</th>
               <th className="px-4 py-3 text-left">Discount</th>

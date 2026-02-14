@@ -261,7 +261,7 @@ export default function PosPage() {
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari produk (nama / sku / id)..."
+              placeholder="Cari produk (nama / barcode)..."
               className="w-full pl-10 pr-3 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -283,7 +283,7 @@ export default function PosPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left">
-                  <th className="p-3">ID / SKU</th>
+                  <th className="p-3">Barcode</th>
                   <th className="p-3">Nama</th>
                   <th className="p-3">Stok</th>
                   <th className="p-3">Expired</th>
@@ -445,7 +445,7 @@ export default function PosPage() {
             {/* CUSTOMER SELECT */}
             <div ref={customerWrapperRef} className="mb-4 pt-4 relative">
               <label className="text-sm text-gray-600 mb-1 block">
-                Customer
+                Pelanggan
               </label>
 
               <input
@@ -465,7 +465,7 @@ export default function PosPage() {
                 <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow max-h-48 overflow-auto">
                   {filteredCustomers.length === 0 && (
                     <div className="px-3 py-2 text-sm text-gray-500">
-                      Customer tidak ditemukan
+                      Pelanggan tidak ditemukan
                     </div>
                   )}
 
@@ -491,7 +491,7 @@ export default function PosPage() {
               )}
               {selectedCustomer && (
                 <div className="mt-1 text-xs text-green-600">
-                  Customer dipilih ✔
+                  Pelanggan dipilih ✔
                 </div>
               )}
             </div>
