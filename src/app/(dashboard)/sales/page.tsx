@@ -34,6 +34,7 @@ export default function PosPage() {
   const [payload, setPayload] = useState<PayloadTransaction| null>(null)
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const { username } = useAuth();
+  const [cash, setCash] = useState<string>("");
 
   const customerInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,10 +59,11 @@ export default function PosPage() {
     };
   };
   
+  const limit = 10;
   const fetchStocks = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/stock");
+      const res = await fetch(`/api/stock?page=${page}&limit=${limit}&search=${query}`);
       const json = await res.json();
       setStocks(json.data || []);
       setPagination(json.pagination);
@@ -76,8 +78,11 @@ export default function PosPage() {
   const customerWrapperRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    inputRef.current?.focus();
     fetchStocks();
+  }, [query, page]);
+  
+  useEffect(() => {
+    inputRef.current?.focus();
     fetchCustomers();
   }, []);
 
@@ -154,12 +159,30 @@ export default function PosPage() {
 
   const totals = useMemo(() => {
     const totalItems = cartItems.reduce((s, c) => s + c.qty, 0);
-
+    
     return {
       totalItems,
       totalPrice: subtotal - discountMember,
     };
   }, [cartItems, subtotal, discountMember]);
+  
+  const formatRupiah = (value: string) => {
+    const number = value.replace(/\D/g, "");
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
+  const parseRupiah = (value: string) => {
+    return Number(value.replace(/\D/g, "")) || 0;
+  };
+
+  const cashNumber = useMemo(() => {
+    return parseRupiah(cash);
+  }, [cash]);
+
+  const change = useMemo(() => {
+    if (cashNumber <= 0) return 0;
+    return cashNumber - totals.totalPrice;
+  }, [cashNumber, totals.totalPrice]);
 
   
   // Reset cart (mis. saat transaksi selesai)
@@ -172,6 +195,7 @@ export default function PosPage() {
     setSelectedCustomer(null);
     setCustomerQuery("");
     setOpenCustomerDropdown(false);
+    setCash("");
 
     inputRef.current?.focus();
   }, []);
@@ -471,10 +495,37 @@ export default function PosPage() {
                 </div>
               )}
             </div>
+            {/* INPUT UANG */}
+            <input
+              type="text"
+              value={formatRupiah(cash)}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/\D/g, "");
+                setCash(raw);
+              }}
+              className="w-full border rounded-lg px-3 py-2"
+              placeholder="Masukkan nominal uang"
+            />
+
+
+            {/* KEMBALIAN */}
+            <div className="flex justify-between text-lg mt-2">
+              <div>Kembalian</div>
+              <div className={change < 0 ? "text-red-600" : "text-green-600"}>
+                Rp {change > 0 ? change.toLocaleString() : 0}
+              </div>
+            </div>
+
+            {cashNumber > 0 && change < 0 && (
+              <div className="text-xs text-red-500 mt-1">
+                Uang tidak mencukupi
+              </div>
+            )}
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => handleTransaction()}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded"
+                disabled={cartItems.length === 0 || change < 0}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400"
               >
                 Bayar
               </button>
@@ -505,7 +556,8 @@ export default function PosPage() {
           onSuccess={()=>{
             clearCart(),
             fetchStocks(),
-            setSelectedCustomer(null)
+            setSelectedCustomer(null),
+            setCash("");
           }
           }
         />

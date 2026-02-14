@@ -79,7 +79,10 @@ const menu: MenuSection[] = [
       {
         name: "Produk",
         icon: Grid2x2Plus,
-        path: "/product"
+        children: [
+          { name: "list produk", path: "/product" },
+          { name: "buat produk", path: "/input-products" },
+        ],
       },
       {
         name: "Supplier",
@@ -134,6 +137,9 @@ export default function Sidebar() {
 
             {section.children.map((child) => {
               const childKey = `${section.item}-${child.name}`;
+                if (child.name === "Pengeluaran" && role !== "Admin") {
+                  return null;
+                }
 
               if (child.path && !child.children) {
                 return (

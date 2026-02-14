@@ -120,6 +120,7 @@ export default function StockHistory() {
               <th className="px-4 py-3 text-left">SKU</th>
               <th className="px-4 py-3 text-left">Nama Produk</th>
               <th className="px-4 py-3 text-left">Tipe</th>
+              <th className="px-4 py-3 text-left">Catatan</th>
               <th className="px-4 py-3 text-left">Stock</th>
               <th className="px-4 py-3 text-left">Tanggal</th>
               <th className="px-4 py-3 text-left">Dibuat oleh</th>
@@ -159,6 +160,7 @@ export default function StockHistory() {
                   {getStockTypeLabel(item.type)}
                   </span>
                 </td>
+                <td className="px-4 py-3">{item.note}</td>
                 <td className="px-4 py-3">{item.qty}</td>
                 <td className="px-4 py-3">
                   {new Date(item.created_at).toLocaleDateString("id-ID")}

@@ -41,33 +41,162 @@ const TransactionConfirmModal: React.FC<TransactionConfirmModalProps> = ({
       reverseButtons: true,
       allowOutsideClick: false,
 
-      preConfirm: async () => {
-        try {
-          const res = await fetch(
-            "/api/transaction",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(transaction),
-            }
-          );
+      // preConfirm: async () => {
+      //   try {
+      //     const res = await fetch(
+      //       "/api/transaction",
+      //       {
+      //         method: "POST",
+      //         headers: {
+      //           "Content-Type": "application/json",
+      //         },
+      //         body: JSON.stringify(transaction),
+      //       }
+      //     );
+      //     try {
+      //     const res = await fetch(
+      //       "http://localhost:8008/print",
+      //       {
+      //             method: "POST",
+      //             headers: {
+      //               "Content-Type": "application/json",
+      //             },
+      //             body: JSON.stringify(transaction),
+      //           }
+      //         );
+                
+      //           if (!res.ok) {
+      //             const data = await res.json();
+      //             Swal.showValidationMessage(
+      //             data?.message || "Gagal melakukan print"
+      //           );
+      //           return false;
+      //         }
+                  
+      //             return true;
+      //           } catch (err) {
+      //         Swal.showValidationMessage("Tidak dapat terhubung ke server");
+      //         return false;
+      //       }
 
-          if (!res.ok) {
-            const data = await res.json();
+      //     if (!res.ok) {
+      //       const data = await res.json();
+      //       Swal.showValidationMessage(
+      //         data?.message || "Gagal melakukan Transaction"
+      //       );
+      //       return false;
+      //     }
+
+      //     return true;
+      //   } catch (err) {
+      //     Swal.showValidationMessage("Tidak dapat terhubung ke server");
+      //     return false;
+      //   }
+      // },
+
+      // preConfirm: async () => {
+      //   if (!transaction) return false;
+
+      //   try {
+      //     // 1️⃣ Kirim transaksi
+      //     const trxRes = await fetch("/api/transaction", {
+      //       method: "POST",
+      //       headers: { "Content-Type": "application/json" },
+      //       body: JSON.stringify(transaction),
+      //     });
+
+      //     if (!trxRes.ok) {
+      //       const data = await trxRes.json();
+      //       Swal.showValidationMessage(data?.statusMessage || "Gagal melakukan transaksi");
+      //       return false;
+      //     }
+
+      //     // Ambil response JSON
+      //     const resJson = await trxRes.json();
+
+      //     // Pastikan ada data
+      //     if (!resJson.data) {
+      //       Swal.showValidationMessage("Data transaksi kosong dari server");
+      //       return false;
+      //     }
+
+      //     const trxData = resJson.data;
+
+      //     // 2️⃣ Kirim data transaksi ke print
+      //     try {
+      //       const printRes = await fetch("http://localhost:8008/print", {
+      //         method: "POST",
+      //         headers: { "Content-Type": "application/json" },
+      //         body: JSON.stringify(trxData),
+      //       });
+
+      //       if (!printRes.ok) {
+      //         const data = await printRes.json();
+      //         Swal.showValidationMessage(data?.message || "Gagal print");
+      //         return false;
+      //       }
+      //     } catch (err) {
+      //       Swal.showValidationMessage("Tidak dapat terhubung ke server print");
+      //       return false;
+      //     }
+
+      //     return true; // transaksi + print berhasil
+      //   } catch (err) {
+      //     Swal.showValidationMessage("Tidak dapat terhubung ke server transaksi");
+      //     return false;
+      //   }
+      // },
+
+      preConfirm: async () => {
+        if (!transaction) return false;
+
+        try {
+          // 1️⃣ Kirim transaksi (WAJIB SUKSES)
+          const trxRes = await fetch("/api/transaction", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(transaction),
+          });
+
+          if (!trxRes.ok) {
+            const data = await trxRes.json();
             Swal.showValidationMessage(
-              data?.message || "Gagal melakukan Transaction"
+              data?.statusMessage || "Gagal melakukan transaksi"
             );
             return false;
           }
 
-          return true;
+          const resJson = await trxRes.json();
+
+          if (!resJson.data) {
+            Swal.showValidationMessage("Data transaksi kosong dari server");
+            return false;
+          }
+
+          const trxData = resJson.data;
+
+          // 2️⃣ Print (TIDAK BOLEH GAGALKAN TRANSAKSI)
+          fetch("http://localhost:8008/print", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(trxData),
+          })
+            .then((res) => {
+              if (!res.ok) {
+                console.warn("Print gagal");
+              }
+            })
+            .catch(() => {
+              console.warn("Tidak bisa konek ke printer service");
+            });
+
+          return true; // ✅ transaksi tetap sukses
         } catch (err) {
-          Swal.showValidationMessage("Tidak dapat terhubung ke server");
+          Swal.showValidationMessage("Tidak dapat terhubung ke server transaksi");
           return false;
         }
       },
+
 
       willClose: () => {
         onClose();

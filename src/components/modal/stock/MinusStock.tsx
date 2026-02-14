@@ -4,11 +4,10 @@ import React, { useEffect, useRef } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { createRoot, Root } from "react-dom/client";
-// use fetch() from the client instead of importing the server route handler
 
 const MySwal = withReactContent(Swal);
 
-interface AddStockForm {
+interface MinusStockForm {
   product_id: string;
   qty: number;
   note: string;
@@ -17,7 +16,7 @@ interface AddStockForm {
 interface ModalContentProps {
   productId: string;
   onClose: () => void;
-  onSubmit: (data: AddStockForm) => void;
+  onSubmit: (data: MinusStockForm) => void;
 }
 
 const ModalContent: React.FC<ModalContentProps> = ({
@@ -35,10 +34,10 @@ const isValid = Number(qty) > 0;
   return (
     <div className="flex flex-col w-full p-6 text-start">
       <h2 className="text-2xl font-semibold text-primary">
-        Tambah Stok Produk
+        Kurangi Stok Produk
       </h2>
       <p className="text-gray-600 text-md mt-1">
-        Masukkan jumlah stok yang akan ditambahkan.
+        Masukkan jumlah stok yang akan dikurangi.
       </p>
 
       <div className="mt-6 space-y-4">
@@ -87,22 +86,22 @@ const isValid = Number(qty) > 0;
               : "bg-gray-400 cursor-not-allowed"
           }`}
         >
-          Tambah Stok
+          Kurangi Stok
         </button>
       </div>
     </div>
   );
 };
 
-interface AddStockModalProps {
+interface MinusStockModalProps {
   open: boolean;
-  sid: string;      // ← sid untuk URL
-  productId: string;    // ← product_id payload
+  sid: string;   
+  productId: string;   
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const AddStockModal: React.FC<AddStockModalProps> = ({
+const MinusStockModal: React.FC<MinusStockModalProps> = ({
   open,
   sid,
   productId,
@@ -111,7 +110,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({
 }) => {
   const reactRootRef = useRef<Root | null>(null);
 
-  const handleSubmit = async (data: AddStockForm) => {
+  const handleSubmit = async (data: MinusStockForm) => {
     if (!sid) {
         MySwal.fire({
         icon: "error",
@@ -120,7 +119,7 @@ const AddStockModal: React.FC<AddStockModalProps> = ({
         return;
     }
     try {
-      const res = await fetch(`/api/stock/${sid}/add`, {
+      const res = await fetch(`/api/stock/${sid}/minus`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -201,4 +200,4 @@ const AddStockModal: React.FC<AddStockModalProps> = ({
   return null;
 };
 
-export default AddStockModal;
+export default MinusStockModal;

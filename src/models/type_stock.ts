@@ -18,6 +18,7 @@ export interface TypeStockMovement {
     product_name: string;
     type: string;
     qty: number;
+    note: string;
     created_at: string;
     created_by_name: string;
     created_by_id: string;

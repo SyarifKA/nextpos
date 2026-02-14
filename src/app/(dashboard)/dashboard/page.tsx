@@ -16,6 +16,7 @@ import PrintConfirmModal from "@/components/modal/print/PrintConfirm"
 import React from "react"
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardData } from "@/models/type_dashboard"
+import { useAuth } from "@/lib/context/AuthContext"
 
 function SummaryCard({
   title,
@@ -34,27 +35,6 @@ function SummaryCard({
   )
 }
 
-
-const dailyData = [
-  { name: "Mon", value: 120000 },
-  { name: "Tue", value: 180000 },
-  { name: "Wed", value: 90000 },
-  { name: "Thu", value: 200000 },
-  { name: "Fri", value: 240000 },
-]
-
-const monthlyData = [
-  { name: "Jan", value: 3200000 },
-  { name: "Feb", value: 2800000 },
-  { name: "Mar", value: 4100000 },
-]
-
-const yearlyData = [
-  { name: "2023", value: 42000000 },
-  { name: "2024", value: 52000000 },
-  { name: "2025", value: 61000000 },
-]
-
 export default function DashboardPOS() {
   const [chartType, setChartType] = useState<"daily" | "monthly" | "yearly">( "daily")
   const [transactions, setTransactions]=useState<TypeTransaction[]>([])
@@ -63,6 +43,7 @@ export default function DashboardPOS() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [expandedTrxId, setExpandedTrxId] = useState<string | null>(null)
   const [selectedTrx, setSelectedTrx] = useState<TypeTransaction | null>(null);
+  const {role} = useAuth()
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -159,11 +140,15 @@ export default function DashboardPOS() {
           value={`Rp ${dataDashboard?.amount_transaction_per_day.toLocaleString()}`}
           accent="bg-emerald-100 text-emerald-700"
         />
-        <SummaryCard
-          title="Pengeluaran Tahun Ini"
-          value={`Rp ${dataDashboard?.cost_per_year.toLocaleString()}`}
-          accent="bg-red-100 text-red-700"
-        />
+        {
+          role == 'Admin' &&(
+            <SummaryCard
+            title="Pengeluaran Tahun Ini"
+            value={`Rp ${dataDashboard?.cost_per_year.toLocaleString()}`}
+            accent="bg-red-100 text-red-700"
+            />
+          )
+        }
       </div>
 
       {/* ================= CHART ================= */}

@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useState, useRef} from "react";
 import AddStockModal from "@/components/modal/stock/AddStock";
+import MinusStockModal from "@/components/modal/stock/MinusStock";
 import ExpiredStockModal from "@/components/modal/stock/ExpiredStock";
 import SupplierReturnModal from "@/components/modal/stock/SupplierReturn";
 import DeleteProductModal from "@/components/modal/product/DeleteProduct";
 import { TypeProduct, Pagination, ProductForm} from "@/models/type";
 import { TypeStock } from "@/models/type_stock";
 import { createPortal } from "react-dom";
+import { useAuth } from "@/lib/context/AuthContext";
 
 
 export default function ProductStock() {
@@ -21,12 +23,12 @@ export default function ProductStock() {
   const [openDelete, setOpenDelete] = useState(false);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [openAddStock, setOpenAddStock] = useState(false);
+  const [openMinusStock, setOpenMinusStock] = useState(false);
   const [openExpired, setOpenExpired] = useState(false);
   const [openActionId, setOpenActionId] = useState<string | null>(null);
   const [actionPosition, setActionPosition] = useState({ top: 0, left: 0 });
   const [openSupplierReturn, setOpenSupplierReturn] = useState(false);
-
-
+  const { role } = useAuth();
 
   const limit = 10;
 
@@ -180,7 +182,7 @@ export default function ProductStock() {
                   >
                     Aksi ▾
                   </button>
-                  {openActionId === item.id &&
+                  {/* {openActionId === item.id &&
                     createPortal(
                       <div
                         className="fixed z-50 w-36 rounded-md border bg-white shadow-lg"
@@ -190,6 +192,19 @@ export default function ProductStock() {
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
+
+                        {
+                          role == 'Admin' &&(
+                            <button
+                              onClick={() => {
+                                setSelectedStock(item);
+                                setOpenExpired(true);
+                                setOpenActionId(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            >
+                              ⛔ Tandai Expired
+                            </button>
                         <button
                           onClick={() => {
                             setSelectedStock(item);
@@ -200,17 +215,18 @@ export default function ProductStock() {
                         >
                           ➕ Tambah Stock
                         </button>
-
                         <button
                           onClick={() => {
                             setSelectedStock(item);
-                            setOpenExpired(true);
+                            setOpenAddStock(true);
                             setOpenActionId(null);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
                         >
-                          ⛔ Tandai Expired
+                          - Kurangi Stock
                         </button>
+                          )
+                        }
                         <button
                           onClick={() => {
                             setSelectedStock(item);
@@ -222,6 +238,68 @@ export default function ProductStock() {
                           🔁 Retur Supplier
                         </button>
 
+                      </div>,
+                      document.body
+                    )} */}
+                  {openActionId === item.id &&
+                    createPortal(
+                      <div
+                        className="fixed z-50 w-36 rounded-md border bg-white shadow-lg"
+                        style={{
+                          top: actionPosition.top,
+                          left: actionPosition.left,
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {/* TOMBOL KHUSUS ADMIN */}
+                        {role === "Admin" && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setSelectedStock(item);
+                                setOpenExpired(true);
+                                setOpenActionId(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            >
+                              ⛔ Tandai Expired
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setSelectedStock(item);
+                                setOpenAddStock(true);
+                                setOpenActionId(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                              ➕ Tambah Stock
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setSelectedStock(item);
+                                setOpenMinusStock(true);
+                                setOpenActionId(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                              ➖ Kurangi Stock
+                            </button>
+                          </>
+                        )}
+
+                        {/* TOMBOL UNTUK SEMUA ROLE */}
+                        <button
+                          onClick={() => {
+                            setSelectedStock(item);
+                            setOpenSupplierReturn(true);
+                            setOpenActionId(null);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+                        >
+                          🔁 Retur Supplier
+                        </button>
                       </div>,
                       document.body
                     )}
@@ -276,6 +354,15 @@ export default function ProductStock() {
             sid={selectedStock.id}
             productId={selectedStock.product_id}
             onClose={() => setOpenAddStock(false)}
+            onSuccess={fetchStock}
+          />
+        )}
+        {selectedStock && (
+          <MinusStockModal
+            open={openMinusStock}
+            sid={selectedStock.id}
+            productId={selectedStock.product_id}
+            onClose={() => setOpenMinusStock(false)}
             onSuccess={fetchStock}
           />
         )}
