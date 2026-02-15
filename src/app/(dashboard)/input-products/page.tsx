@@ -147,6 +147,8 @@ export default function AddProductPage() {
     fetchSupplier();
   }, []);
 
+  console.log(suppliers)
+
   // ================= PRODUCT ROW =================
   const addRow = () => {
     setForm((s) => ({

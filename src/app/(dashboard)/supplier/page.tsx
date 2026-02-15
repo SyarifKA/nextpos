@@ -18,7 +18,7 @@ export default function Supplier() {
   const [selectedSupplier, setSelectedSupplier] = useState<TypeSupplier | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
 
-  const limit = 1000;
+  const limit = 10;
   const fetchSuppliers = async () => {
     try {
       setLoading(true);
