@@ -50,6 +50,23 @@ export default function Product() {
     inputRef.current?.focus();
   }, []);
 
+    // Helper: generate page numbers dengan ellipsis
+  const getPaginationPages = (current: number, total: number): (number | "...")[] => {
+    const delta = 1; // halaman di kiri & kanan halaman aktif
+    const pages: (number | "...")[] = [];
+
+    const rangeStart = Math.max(2, current - delta);
+    const rangeEnd = Math.min(total - 1, current + delta);
+
+    pages.push(1);
+    if (rangeStart > 2) pages.push("...");
+    for (let i = rangeStart; i <= rangeEnd; i++) pages.push(i);
+    if (rangeEnd < total - 1) pages.push("...");
+    if (total > 1) pages.push(total);
+
+    return pages;
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-4">
       {/* HEADER */}
@@ -73,32 +90,7 @@ export default function Product() {
               setSearch(e.target.value);
             }}
           />
-
-          {/* <select
-            className="w-full md:w-44 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={supplier}
-            onChange={(e) => {
-              setPage(1);
-              setSupplier(e.target.value);
-            }}
-          >
-            <option value="">Semua Supplier</option>
-            {Array.from(
-                new Set(products.map((p) => p.supplier_name).filter(Boolean))
-                ).map((s) => (
-                <option key={`supplier-${s}`} value={s}>
-                    {s}
-                </option>
-                ))}
-          </select> */}
         </div>
-
-        {/* <button
-          onClick={() => setOpenAdd(true)}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
-        >
-          + Tambah Produk
-        </button> */}
       </div>
 
       {/* TABLE */}
@@ -157,38 +149,65 @@ export default function Product() {
 
       {/* PAGINATION */}
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex justify-end gap-1">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-            className="rounded border px-3 py-1 text-sm"
-          >
-            «
-          </button>
-
-          {Array.from({ length: pagination.total_pages }).map((_, i) => (
+        <div className="flex justify-end items-center gap-1 mt-3">
+            {/* First */}
             <button
-              key={i}
-              onClick={() => setPage(i + 1)}
-              className={`rounded border px-3 py-1 text-sm ${
-                page === i + 1
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "hover:bg-gray-100"
-              }`}
+              disabled={page === 1}
+              onClick={() => setPage(1)}
+              className="rounded border px-2 py-1 text-sm disabled:opacity-40 hover:bg-gray-100"
+              title="Halaman pertama"
             >
-              {i + 1}
+              «
             </button>
-          ))}
-
-          <button
-            disabled={page === pagination.total_pages}
-            onClick={() => setPage(page + 1)}
-            className="rounded border px-3 py-1 text-sm"
-          >
-            »
-          </button>
-        </div>
-      )}
+            {/* Prev */}
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+              className="rounded border px-2 py-1 text-sm disabled:opacity-40 hover:bg-gray-100"
+              title="Sebelumnya"
+            >
+              ‹
+            </button>
+            {/* Nomor halaman */}
+            {getPaginationPages(page, pagination.total_pages).map((p, idx) =>
+              p === "..." ? (
+                <span key={`ellipsis-${idx}`} className="px-1 py-1 text-sm text-gray-400 select-none">
+                  …
+                </span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => setPage(p as number)}
+                  className={`rounded border px-3 py-1 text-sm ${
+                    page === p
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  {p}
+                </button>
+              )
+            )}
+            {/* Next */}
+            <button
+              disabled={page === pagination.total_pages}
+              onClick={() => setPage(page + 1)}
+              className="rounded border px-2 py-1 text-sm disabled:opacity-40 hover:bg-gray-100"
+              title="Berikutnya"
+            >
+              ›
+            </button>
+            {/* Last */}
+            <button
+              disabled={page === pagination.total_pages}
+              onClick={() => setPage(pagination.total_pages)}
+              className="rounded border px-2 py-1 text-sm disabled:opacity-40 hover:bg-gray-100"
+              title="Halaman terakhir"
+            >
+              »
+            </button>
+          </div>
+          )}
 
       {/* MODAL */}
       <AddProductModal
