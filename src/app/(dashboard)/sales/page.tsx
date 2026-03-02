@@ -63,7 +63,7 @@ export default function PosPage() {
   const fetchStocks = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/stock?page=${page}&limit=${limit}&search=${query}`);
+      const res = await fetch(`/api/stock?page=${page}&limit=${limit}&search=${searchTerm}`);
       const json = await res.json();
       setStocks(json.data || []);
       setPagination(json.pagination);
@@ -79,7 +79,7 @@ export default function PosPage() {
   
   useEffect(() => {
     fetchStocks();
-  }, [query, page]);
+  }, [searchTerm, page]);
   
   useEffect(() => {
     inputRef.current?.focus();
@@ -304,9 +304,8 @@ export default function PosPage() {
                   <th className="p-3">Nama</th>
                   <th className="p-3">Stok</th>
                   <th className="p-3">Expired</th>
-                  <th className="p-3">Harga normal</th>
-                  <th className="p-3">Discount</th>
                   <th className="p-3">Harga</th>
+                  <th className="p-3">Disc</th>
                 </tr>
               </thead>
               <tbody>
@@ -323,14 +322,19 @@ export default function PosPage() {
                       {new Date(p.exp).toLocaleDateString("id-ID")}
                     </td>
                     <td className="p-3">Rp {p.price.toLocaleString()}</td>
-                    <td className="p-3">Rp {p.discount.toLocaleString()}</td>
-                    <td className="p-3">Rp {(p.price - p.discount).toLocaleString()}</td>
+                    <td className="p-3">
+                      {p.discount > 0 ? (
+                        <span className="text-green-600">Rp {p.discount.toLocaleString()}</span>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                   </tr>
                 ))}
 
                 {stocks.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-4 text-center text-gray-500">
+                    <td colSpan={6} className="p-4 text-center text-gray-500">
                       Tidak ada produk.
                     </td>
                   </tr>
@@ -413,6 +417,7 @@ export default function PosPage() {
               <thead>
                 <tr className="text-left">
                   <th className="p-2">Nama</th>
+                  <th className="p-2">Disc</th>
                   <th className="p-2">Qty</th>
                   <th className="p-2">Subtotal</th>
                   <th className="p-2">Aksi</th>
@@ -422,6 +427,15 @@ export default function PosPage() {
                 {cartItems.map((c) => (
                   <tr key={c.id} className="align-top">
                     <td className="p-2">{c.name}</td>
+                    <td className="p-2">
+                      {c.discount > 0 ? (
+                        <span className="text-green-600">
+                          Rp {(c.discount * c.qty).toLocaleString()}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                     <td className="p-2">
                       <div className="flex items-center gap-2 text-white">
                         <button
@@ -466,7 +480,7 @@ export default function PosPage() {
 
                 {cartItems.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="p-4 text-center text-gray-500">
+                    <td colSpan={5} className="p-4 text-center text-gray-500">
                       klik produk di kiri untuk menambah.
                     </td>
                   </tr>

@@ -1,50 +1,37 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef} from "react";
-import AddProductModal from "@/components/modal/product/AddProduct";
-import EditProductModal from "@/components/modal/product/EditProduct";
-import DeleteProductModal from "@/components/modal/product/DeleteProduct";
-import { TypeProduct, Pagination, ProductForm} from "@/models/type";
-import { useAuth } from "@/lib/context/AuthContext";
-import { Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { TypeStock } from "@/models/type_stock";
+import { Pagination } from "@/models/type";
 
-export default function Product() {
-  const { role } = useAuth();
-  const [products, setProducts] = useState<TypeProduct[]>([]);
+export default function StockExpired() {
+  const [stocks, setStocks] = useState<TypeStock[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [supplier, setSupplier] = useState("");
-  const [year, setYear] = useState("");
   const [page, setPage] = useState(1);
-  const [openAdd, setOpenAdd] = useState(false);
-  const [openEdit, setOpenEdit] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<TypeProduct | null>(null);
-  const [editProduct, setEditProduct] = useState<ProductForm | null>(null);
-  const [openDelete, setOpenDelete] = useState(false);
   const [pagination, setPagination] = useState<Pagination | null>(null);
 
   const limit = 10;
 
-  const fetchProducts = async () => {
+  const fetchStocks = async () => {
     try {
       setLoading(true);
       const res = await fetch(
-        `/api/product?page=${page}&limit=${limit}&search=${search}`
+        `/api/stock/expired?page=${page}&limit=${limit}&search=${search}`
       );
       const json = await res.json();
 
-      setProducts(json.data || []);
-      setEditProduct(json.data || [])
+      setStocks(json.data || []);
       setPagination(json.pagination);
     } catch (error) {
-      console.error("Failed fetch Customers", error);
+      console.error("Failed fetch Stocks", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchStocks();
   }, [page, search]);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,9 +40,9 @@ export default function Product() {
     inputRef.current?.focus();
   }, []);
 
-    // Helper: generate page numbers dengan ellipsis
+  // Helper: generate page numbers with ellipsis
   const getPaginationPages = (current: number, total: number): (number | "...")[] => {
-    const delta = 1; // halaman di kiri & kanan halaman aktif
+    const delta = 1; // pages to left & right of active page
     const pages: (number | "...")[] = [];
 
     const rangeStart = Math.max(2, current - delta);
@@ -75,7 +62,7 @@ export default function Product() {
       {/* HEADER */}
       <div>
         <h1 className="text-3xl font-semibold text-gray-800">
-          Manajemen Produk
+          Stok Expired
         </h1>
       </div>
 
@@ -103,61 +90,46 @@ export default function Product() {
             <tr>
               <th className="px-4 py-3 text-left">Barcode</th>
               <th className="px-4 py-3 text-left">Nama Produk</th>
+              <th className="px-4 py-3 text-left">Size</th>
               <th className="px-4 py-3 text-left">Harga</th>
               <th className="px-4 py-3 text-left">Discount</th>
-              <th className="px-4 py-3 text-left">Stock</th>
+              <th className="px-4 py-3 text-left">Qty</th>
               <th className="px-4 py-3 text-left">Expired</th>
-              <th className="px-4 py-3 text-left">Supplier</th>
-              {role === "Admin" && <th className="px-4 py-3 text-center">Aksi</th>}
             </tr>
           </thead>
 
           <tbody className="divide-y">
             {loading && (
               <tr>
-                <td colSpan={role === "Admin" ? 8 : 7} className="px-4 py-6 text-center">
+                <td colSpan={7} className="px-4 py-6 text-center">
                   Loading...
                 </td>
               </tr>
             )}
 
-            {!loading && products.length === 0 && (
+            {!loading && stocks.length === 0 && (
               <tr>
-                <td colSpan={role === "Admin" ? 8 : 7} className="px-4 py-6 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
                   Data tidak ditemukan
                 </td>
               </tr>
             )}
 
-            {products.map((item) => (
+            {stocks.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono">{item.sku}</td>
                 <td className="px-4 py-3">{item.name}</td>
+                <td className="px-4 py-3">{item.size}</td>
                 <td className="px-4 py-3">
                   Rp {item.price?.toLocaleString()}
                 </td>
                 <td className="px-4 py-3">
                   Rp {item?.discount?.toLocaleString()}
                 </td>
-                <td className="px-4 py-3">{item.stock}</td>
+                <td className="px-4 py-3">{item.qty}</td>
                 <td className="px-4 py-3">
                   {new Date(item.exp).toLocaleDateString("id-ID")}
                 </td>
-                <td className="px-4 py-3">{item.supplier_name}</td>
-                {role === "Admin" && (
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => {
-                        setSelectedProduct(item);
-                        setOpenDelete(true);
-                      }}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                      title="Hapus"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </td>
-                )}
               </tr>
             ))}
           </tbody>
@@ -185,7 +157,7 @@ export default function Product() {
             >
               ‹
             </button>
-            {/* Nomor halaman */}
+            {/* Page numbers */}
             {getPaginationPages(page, pagination.total_pages).map((p, idx) =>
               p === "..." ? (
                 <span key={`ellipsis-${idx}`} className="px-1 py-1 text-sm text-gray-400 select-none">
@@ -225,25 +197,6 @@ export default function Product() {
             </button>
           </div>
           )}
-
-      {/* MODAL */}
-      <AddProductModal
-        open={openAdd}
-        onClose={() => setOpenAdd(false)}
-        onSuccess={fetchProducts}
-      />
-      <EditProductModal
-        open={openEdit}
-        product={editProduct}
-        onClose={() => setOpenEdit(false)}
-        onSuccess={fetchProducts}
-        />
-      <DeleteProductModal
-        open={openDelete}
-        product={selectedProduct}
-        onClose={() => setOpenDelete(false)}
-        onSuccess={fetchProducts}
-        />
     </div>
   );
 }

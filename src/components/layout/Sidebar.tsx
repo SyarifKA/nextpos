@@ -64,6 +64,7 @@ const menu: MenuSection[] = [
         children: [
           { name: "stok produk", path: "/product-stock" },
           { name: "history stok", path: "/stock-history" },
+          { name: "stok expired", path: "/stock/expired" },
         ],
       },
       {
