@@ -89,7 +89,14 @@ export default function TempoProductPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
+    if (!dateString || dateString.trim() === "") {
+      return "-";
+    }
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return "-";
+    }
+    return date.toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "long",
       year: "numeric",
