@@ -37,7 +37,7 @@ const ConfirmPaymentModal: React.FC<ConfirmPaymentModalProps> = ({
   useEffect(() => {
     if (!open || !product) return;
 
-    const totalPayment = product.price - product.discount;
+    const totalPayment = (product.price - product.discount)*product.stock;
     const formattedTotal = `Rp ${totalPayment.toLocaleString("id-ID")}`;
     const formattedPrice = `Rp ${product.price.toLocaleString("id-ID")}`;
     const formattedDiscount = product.discount > 0 

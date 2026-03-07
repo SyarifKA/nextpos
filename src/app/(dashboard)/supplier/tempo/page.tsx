@@ -221,7 +221,7 @@ export default function TempoProductPage() {
                   {formatDate(item.due_payment)}
                 </td>
                 <td className="px-4 py-3 text-right font-semibold text-green-600">
-                  {formatCurrency(item.price - item.discount)}
+                  {formatCurrency((item.price - item.discount)*item.stock)}
                 </td>
                 <td className="px-4 py-3 text-center">
                   {getStatusBadge(item.status)}

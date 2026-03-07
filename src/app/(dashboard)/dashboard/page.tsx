@@ -143,7 +143,7 @@ export default function DashboardPOS() {
       <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100">
         <div className="flex flex-wrap items-end gap-4">
           {/* Filter Dropdown */}
-          <div className="flex flex-col gap-1.5 min-w-[160px]">
+          <div className="flex flex-col gap-1.5 min-w-40">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Periode</label>
             <select
               className="select select-bordered select-sm bg-gray-50 border-gray-200 rounded-lg"
