@@ -88,7 +88,10 @@ const menu: MenuSection[] = [
       {
         name: "Supplier",
         icon: Truck,
-        path: "/supplier"
+        children: [
+          { name: "list supplier", path: "/supplier" },
+          { name: "produk tempo", path: "/supplier/tempo" },
+        ]
       },
       {
         name: "Pengeluaran",

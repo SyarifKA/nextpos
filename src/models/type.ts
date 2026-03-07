@@ -83,3 +83,18 @@ export interface CheckoutProduct {
   qty: number;
 }
 
+export type TempoProduct = {
+  id: string;
+  sku: string;
+  name: string;
+  size: string;
+  supplier_name: string;
+  stock: number;
+  exp: string;
+  price: number;
+  discount: number;
+  payment_method: string;
+  status: string;
+  due_payment: string;
+};
+
