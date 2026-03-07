@@ -5,15 +5,10 @@ export interface ChartItem {
 
 export interface DashboardData {
   total_customers: number
-  total_transaction_per_day: number
-  total_transaction_per_month: number
-  total_transaction_per_year: number
-
-  amount_transaction_per_day: number
-  amount_transaction_per_month: number
-  amount_transaction_per_year: number
-
-  cost_per_year: number
+  total_transaction: number
+  amount_transaction: number
+  cost: number
+  gross_profit: number
 
   daily_data: ChartItem[]
   monthly_data: ChartItem[]

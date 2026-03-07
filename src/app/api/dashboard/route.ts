@@ -15,7 +15,21 @@ export async function GET(req: Request) {
       );
     }
 
-    const res = await fetch(`${API_SERVER}dashboard`, {
+    const { searchParams } = new URL(req.url);
+    
+    const filter = searchParams.get("filter") || "today";
+    const startDate = searchParams.get("start_date") || "";
+    const endDate = searchParams.get("end_date") || "";
+
+    // Build query params
+    let queryParams = "";
+    if (startDate && endDate) {
+      queryParams = `?start_date=${startDate}&end_date=${endDate}`;
+    } else {
+      queryParams = `?filter=${filter}`;
+    }
+
+    const res = await fetch(`${API_SERVER}dashboard${queryParams}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

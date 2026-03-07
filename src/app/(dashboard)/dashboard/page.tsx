@@ -45,6 +45,11 @@ export default function DashboardPOS() {
   const [selectedTrx, setSelectedTrx] = useState<TypeTransaction | null>(null);
   const {role, username} = useAuth()
 
+  // Filter state
+  const [filter, setFilter] = useState<"today" | "week" | "month" | "year">("today");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const limit = 5;
@@ -52,8 +57,17 @@ export default function DashboardPOS() {
   const fetchDataDashboard = async () => {
     try {
       setLoading(true);
+      
+      // Build query params
+      let queryParams = "";
+      if (startDate && endDate) {
+        queryParams = `?start_date=${startDate}&end_date=${endDate}`;
+      } else {
+        queryParams = `?filter=${filter}`;
+      }
+      
       const res = await fetch(
-        `/api/dashboard`
+        `/api/dashboard${queryParams}`
       );
       const json = await res.json();
 
@@ -85,7 +99,7 @@ export default function DashboardPOS() {
 
   useEffect(() => {
     fetchDataDashboard();
-  }, []);
+  }, [filter]);
 
   useEffect(() => {
     fetchTransactions();
@@ -124,10 +138,80 @@ export default function DashboardPOS() {
         <div className="text-semibold text-2xl">Halo! Selamat datang</div>
         <div className="text-bold text-3xl">{username}</div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+      {/* Filter Controls */}
+      <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100">
+        <div className="flex flex-wrap items-end gap-4">
+          {/* Filter Dropdown */}
+          <div className="flex flex-col gap-1.5 min-w-[160px]">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Periode</label>
+            <select
+              className="select select-bordered select-sm bg-gray-50 border-gray-200 rounded-lg"
+              value={startDate && endDate ? "custom" : filter}
+              onChange={(e) => {
+                if (e.target.value === "custom") {
+                  return;
+                }
+                setFilter(e.target.value as "today" | "week" | "month" | "year");
+                setStartDate("");
+                setEndDate("");
+              }}
+            >
+              <option value="today">Hari Ini</option>
+              <option value="week">Minggu Ini</option>
+              <option value="month">Bulan Ini</option>
+              <option value="year">Tahun Ini</option>
+              <option value="custom">Custom Range</option>
+            </select>
+          </div>
+
+          {/* Custom Date Range */}
+          {startDate && endDate ? (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rentang Tanggal</label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium">
+                  {startDate} - {endDate}
+                </span>
+                <button
+                  onClick={() => {
+                    setStartDate("");
+                    setEndDate("");
+                    setFilter("today");
+                  }}
+                  className="btn btn-sm btn-ghost text-red-500 hover:bg-red-50"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Custom Tanggal</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  className="input input-bordered input-sm bg-gray-50 border-gray-200 rounded-lg"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+                <span className="text-gray-400 font-medium">-</span>
+                <input
+                  type="date"
+                  className="input input-bordered input-sm bg-gray-50 border-gray-200 rounded-lg"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <SummaryCard
-          title="Transaksi Hari Ini"
-          value={`${dataDashboard?.total_transaction_per_day.toLocaleString()}`}
+          title="Total Transaksi"
+          value={`${dataDashboard?.total_transaction.toLocaleString()}`}
           accent="bg-green-100 text-green-700"
         />
         <SummaryCard
@@ -136,17 +220,24 @@ export default function DashboardPOS() {
           accent="bg-blue-100 text-blue-700"
         />
         <SummaryCard
-          title="Pendapatan Hari Ini"
-          value={`Rp ${dataDashboard?.amount_transaction_per_day.toLocaleString()}`}
+          title="Total Pendapatan"
+          value={`Rp ${dataDashboard?.amount_transaction.toLocaleString()}`}
           accent="bg-emerald-100 text-emerald-700"
         />
         {
           role == 'Admin' &&(
-            <SummaryCard
-            title="Pengeluaran Tahun Ini"
-            value={`Rp ${dataDashboard?.cost_per_year.toLocaleString()}`}
-            accent="bg-red-100 text-red-700"
-            />
+            <>
+              <SummaryCard
+              title="Pengeluaran"
+              value={`Rp ${dataDashboard?.cost.toLocaleString()}`}
+              accent="bg-red-100 text-red-700"
+              />
+              <SummaryCard
+              title="Laba Kotor"
+              value={`Rp ${dataDashboard?.gross_profit.toLocaleString()}`}
+              accent="bg-purple-100 text-purple-700"
+              />
+            </>
           )
         }
       </div>
