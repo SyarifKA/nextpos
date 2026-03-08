@@ -143,10 +143,10 @@ export default function DashboardPOS() {
       <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100">
         <div className="flex flex-wrap items-end gap-4">
           {/* Filter Dropdown */}
-          <div className="flex flex-col gap-1.5 min-w-40">
+          <div className="flex flex-col gap-1.5 min-w-48">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Periode</label>
             <select
-              className="select select-bordered select-sm bg-gray-50 border-gray-200 rounded-lg"
+              className="select select-bordered select-sm bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl text-blue-700 font-medium focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-200"
               value={startDate && endDate ? "custom" : filter}
               onChange={(e) => {
                 if (e.target.value === "custom") {
@@ -165,46 +165,48 @@ export default function DashboardPOS() {
             </select>
           </div>
 
-          {/* Custom Date Range */}
-          {startDate && endDate ? (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rentang Tanggal</label>
-              <div className="flex items-center gap-2">
-                <span className="text-sm bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium">
-                  {startDate} - {endDate}
-                </span>
+          {/* Custom Date Range - Always show inputs */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Custom Tanggal</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                className="input input-sm bg-linear-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl text-green-700 font-medium focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all duration-200 px-4 py-2 min-w-40"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <span className="text-gray-400 font-medium">-</span>
+              <input
+                type="date"
+                className="input input-sm bg-linear-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl text-green-700 font-medium focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all duration-200 px-4 py-2 min-w-40"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+              {startDate && endDate && (
                 <button
                   onClick={() => {
                     setStartDate("");
                     setEndDate("");
                     setFilter("today");
                   }}
-                  className="btn btn-sm btn-ghost text-red-500 hover:bg-red-50"
+                  className="btn btn-sm bg-linear-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 rounded-lg h-10 px-4"
                 >
                   Reset
                 </button>
-              </div>
+              )}
+              <button
+                onClick={() => {
+                  if (startDate && endDate) {
+                    fetchDataDashboard();
+                  }
+                }}
+                disabled={!startDate || !endDate}
+                className="btn btn-sm bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 rounded-lg h-10 px-4 disabled:from-gray-300 disabled:to-gray-400"
+              >
+                Apply
+              </button>
             </div>
-          ) : (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Custom Tanggal</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  className="input input-bordered input-sm bg-gray-50 border-gray-200 rounded-lg"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-                <span className="text-gray-400 font-medium">-</span>
-                <input
-                  type="date"
-                  className="input input-bordered input-sm bg-gray-50 border-gray-200 rounded-lg"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
 
