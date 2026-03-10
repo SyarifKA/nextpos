@@ -93,6 +93,11 @@ export default function PosPage() {
   }, [query]);
 
   const addToCart = (stock: TypeStock) => {
+    // Prevent adding products with no stock
+    if (!stock.qty || stock.qty <= 0) {
+      return;
+    }
+
     setCartItems((prev) => {
       const found = prev.find((i) => i.stock_id === stock.id);
 
@@ -313,11 +318,17 @@ export default function PosPage() {
                   <tr
                     key={p.id}
                     onClick={() => addToCart(p)}
-                    className="cursor-pointer hover:bg-gray-50"
+                    className={`cursor-pointer hover:bg-gray-50 ${(!p.qty || p.qty <= 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <td className="p-3">{p.sku ?? p.id}</td>
                     <td className="p-3">{p.name}</td>
-                    <td className="p-3">{p.qty}</td>
+                    <td className="p-3">
+                      {p.qty <= 0 ? (
+                        <span className="text-red-500 font-semibold">Habis</span>
+                      ) : (
+                        p.qty
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       {new Date(p.exp).toLocaleDateString("id-ID")}
                     </td>
