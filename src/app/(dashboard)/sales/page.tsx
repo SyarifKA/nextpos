@@ -91,20 +91,24 @@ export default function PosPage() {
   
   const inputRef = useRef<HTMLInputElement>(null);
   const customerWrapperRef = useRef<HTMLDivElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  useEffect(() => {
-    fetchStocks();
-  }, [searchTerm, page]);
-  
-  useEffect(() => {
-    inputRef.current?.focus();
-    fetchCustomers();
-  }, []);
-
   // Debounce untuk search (150ms untuk respons lebih cepat)
   useEffect(() => {
-    const id = setTimeout(() => setSearchTerm(query.trim()), 150);
-    return () => clearTimeout(id);
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearchTerm(query.trim());
+    }, 150);
+    
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [query]);
 
   const addToCart = (stock: TypeStock) => {
@@ -315,8 +319,11 @@ export default function PosPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onPaste={(e) => {
-                // Langsung trigger search tanpa menunggu debounce
+                // Cancel debounce dan langsung trigger search
                 e.preventDefault();
+                if (searchTimeoutRef.current) {
+                  clearTimeout(searchTimeoutRef.current);
+                }
                 const pastedText = e.clipboardData.getData('text');
                 setQuery(pastedText);
                 setSearchTerm(pastedText.trim());
@@ -324,6 +331,10 @@ export default function PosPage() {
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
+                  // Cancel debounce dan langsung trigger search
+                  if (searchTimeoutRef.current) {
+                    clearTimeout(searchTimeoutRef.current);
+                  }
                   setSearchTerm(query.trim());
                   fetchStocksImmediate(query.trim());
                 }
