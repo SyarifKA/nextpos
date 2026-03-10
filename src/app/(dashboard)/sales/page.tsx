@@ -63,7 +63,9 @@ export default function PosPage() {
   const fetchStocks = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/stock?page=${page}&limit=${limit}&search=${searchTerm}`);
+      // Saat search, gunakan page=1 agar produk mudah ditemukan
+      const fetchPage = searchTerm ? 1 : page;
+      const res = await fetch(`/api/stock?page=${fetchPage}&limit=${limit}&search=${searchTerm}`);
       const json = await res.json();
       setStocks(json.data || []);
       setPagination(json.pagination);
@@ -324,11 +326,12 @@ export default function PosPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onPaste={(e) => {
-                // Cancel debounce dan langsung trigger search
+                // Cancel debounce, reset page ke 1, dan langsung trigger search
                 e.preventDefault();
                 if (searchTimeoutRef.current) {
                   clearTimeout(searchTimeoutRef.current);
                 }
+                setPage(1); // Reset ke halaman 1 saat search
                 const pastedText = e.clipboardData.getData('text');
                 setQuery(pastedText);
                 setSearchTerm(pastedText.trim());
@@ -336,10 +339,11 @@ export default function PosPage() {
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  // Cancel debounce dan langsung trigger search
+                  // Cancel debounce, reset page ke 1, dan langsung trigger search
                   if (searchTimeoutRef.current) {
                     clearTimeout(searchTimeoutRef.current);
                   }
+                  setPage(1); // Reset ke halaman 1 saat search
                   setSearchTerm(query.trim());
                   fetchStocksImmediate(query.trim());
                 }
