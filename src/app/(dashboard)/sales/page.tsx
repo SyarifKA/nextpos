@@ -73,6 +73,21 @@ export default function PosPage() {
       setLoading(false);
     }
   };
+
+  // Fetch stocks dengan search term spesifik (tanpa perlu set state)
+  const fetchStocksImmediate = async (search: string) => {
+    try {
+      setLoading(true);
+      const res = await fetch(`/api/stock?page=1&limit=${limit}&search=${search}`);
+      const json = await res.json();
+      setStocks(json.data || []);
+      setPagination(json.pagination);
+    } catch (error) {
+      console.error("Failed fetch Stocks", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const inputRef = useRef<HTMLInputElement>(null);
   const customerWrapperRef = useRef<HTMLDivElement>(null);
@@ -86,9 +101,9 @@ export default function PosPage() {
     fetchCustomers();
   }, []);
 
-  // Debounce sederhana untuk search (300ms)
+  // Debounce untuk search (150ms untuk respons lebih cepat)
   useEffect(() => {
-    const id = setTimeout(() => setSearchTerm(query.trim()), 300);
+    const id = setTimeout(() => setSearchTerm(query.trim()), 150);
     return () => clearTimeout(id);
   }, [query]);
 
@@ -123,6 +138,22 @@ export default function PosPage() {
       ];
     });
   };
+
+  // Auto-select produk ketika hasil pencarian tepat 1 (untuk barcode scanning)
+  useEffect(() => {
+    if (stocks.length === 1 && query.trim() !== "") {
+      const stock = stocks[0];
+      // Cek jika query cocok dengan SKU atau barcode
+      const isMatch = 
+        stock.sku?.toLowerCase() === query.trim().toLowerCase() ||
+        stock.id.toLowerCase() === query.trim().toLowerCase();
+      
+      // if (isMatch) {
+      //   addToCart(stock);
+        // setQuery(""); // Reset input setelah produk ditambahkan
+      // }
+    }
+  }, [stocks, query, addToCart]);
 
   const updateCartQuantity = (id: string, qty: number) => {
     setCartItems((prev) =>
@@ -283,6 +314,26 @@ export default function PosPage() {
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onPaste={(e) => {
+                // Langsung trigger search tanpa menunggu debounce
+                e.preventDefault();
+                const pastedText = e.clipboardData.getData('text');
+                setQuery(pastedText);
+                setSearchTerm(pastedText.trim());
+                fetchStocksImmediate(pastedText.trim());
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setSearchTerm(query.trim());
+                  fetchStocksImmediate(query.trim());
+                }
+              }}
+              onBlur={() => {
+                // Trigger search saat input kehilangan fokus
+                if (query.trim()) {
+                  setSearchTerm(query.trim());
+                }
+              }}
               placeholder="Cari produk (nama / barcode)..."
               className="w-full pl-10 pr-3 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
