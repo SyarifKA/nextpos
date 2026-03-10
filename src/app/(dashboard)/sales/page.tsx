@@ -93,6 +93,11 @@ export default function PosPage() {
   const customerWrapperRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Fetch stocks saat mount atau saat searchTerm/page berubah
+  useEffect(() => {
+    fetchStocks();
+  }, [searchTerm, page]);
+  
   // Debounce untuk search (150ms untuk respons lebih cepat)
   useEffect(() => {
     // Clear previous timeout
