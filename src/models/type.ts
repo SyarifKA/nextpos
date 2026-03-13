@@ -2,10 +2,12 @@ export type TypeProduct = {
   id: string;
   sku: string;
   name: string;
+  size: string;
   price: number;
   stock: number;
   exp: string;
   discount: number;
+  discount_customer: number;
   supplier_name: string;
 };
 
@@ -27,10 +29,12 @@ export interface ProductForm {
   id: string;
   sku: string;
   name: string;
+  size: string;
   price: string;
   stock: string;
   exp: string;
   supplier_name: string;
+  discount_customer: string;
 }
 
 export interface InputProps {

@@ -6,15 +6,13 @@ import EditProductModal from "@/components/modal/product/EditProduct";
 import DeleteProductModal from "@/components/modal/product/DeleteProduct";
 import { TypeProduct, Pagination, ProductForm} from "@/models/type";
 import { useAuth } from "@/lib/context/AuthContext";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 
 export default function Product() {
   const { role } = useAuth();
   const [products, setProducts] = useState<TypeProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [supplier, setSupplier] = useState("");
-  const [year, setYear] = useState("");
   const [page, setPage] = useState(1);
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -34,7 +32,6 @@ export default function Product() {
       const json = await res.json();
 
       setProducts(json.data || []);
-      setEditProduct(json.data || [])
       setPagination(json.pagination);
     } catch (error) {
       console.error("Failed fetch Customers", error);
@@ -103,6 +100,7 @@ export default function Product() {
             <tr>
               <th className="px-4 py-3 text-left">Barcode</th>
               <th className="px-4 py-3 text-left">Nama Produk</th>
+              <th className="px-4 py-3 text-left">Size</th>
               <th className="px-4 py-3 text-left">Harga</th>
               <th className="px-4 py-3 text-left">Discount</th>
               <th className="px-4 py-3 text-left">Stock</th>
@@ -115,7 +113,7 @@ export default function Product() {
           <tbody className="divide-y">
             {loading && (
               <tr>
-                <td colSpan={role === "Admin" ? 8 : 7} className="px-4 py-6 text-center">
+                <td colSpan={role === "Admin" ? 9 : 8} className="px-4 py-6 text-center">
                   Loading...
                 </td>
               </tr>
@@ -123,7 +121,7 @@ export default function Product() {
 
             {!loading && products.length === 0 && (
               <tr>
-                <td colSpan={role === "Admin" ? 8 : 7} className="px-4 py-6 text-center text-gray-500">
+                <td colSpan={role === "Admin" ? 9 : 8} className="px-4 py-6 text-center text-gray-500">
                   Data tidak ditemukan
                 </td>
               </tr>
@@ -133,11 +131,12 @@ export default function Product() {
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-mono">{item.sku}</td>
                 <td className="px-4 py-3">{item.name}</td>
+                <td className="px-4 py-3">{item.size}</td>
                 <td className="px-4 py-3">
                   Rp {item.price?.toLocaleString()}
                 </td>
                 <td className="px-4 py-3">
-                  Rp {item?.discount?.toLocaleString()}
+                  Rp {item?.discount_customer?.toLocaleString() || 0}
                 </td>
                 <td className="px-4 py-3">{item.stock}</td>
                 <td className="px-4 py-3">
@@ -146,6 +145,26 @@ export default function Product() {
                 <td className="px-4 py-3">{item.supplier_name}</td>
                 {role === "Admin" && (
                   <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => {
+                        setEditProduct({
+                          id: item.id,
+                          sku: item.sku,
+                          name: item.name,
+                          size: item.size || "",
+                          price: String(item.price),
+                          stock: String(item.stock),
+                          exp: item.exp.split("T")[0],
+                          supplier_name: item.supplier_name,
+                          discount_customer: String(item.discount_customer || 0),
+                        });
+                        setOpenEdit(true);
+                      }}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition mr-1"
+                      title="Edit"
+                    >
+                      <Pencil size={20} />
+                    </button>
                     <button
                       onClick={() => {
                         setSelectedProduct(item);

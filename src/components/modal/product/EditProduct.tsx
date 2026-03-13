@@ -15,6 +15,7 @@ interface InputProps {
   placeholder: string;
   value: string;
   type?: string;
+  disabled?: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -32,6 +33,7 @@ const InputField: React.FC<InputProps> = ({
   onChange,
   placeholder,
   type = "text",
+  disabled = false,
 }) => {
   return (
     <div className="flex flex-col w-full gap-2">
@@ -41,11 +43,13 @@ const InputField: React.FC<InputProps> = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="
+        disabled={disabled}
+        className={`
           px-4 py-3 border border-gray-300 rounded-lg
           placeholder-gray-400 text-md font-medium
           focus:outline-none focus:ring-2 focus:ring-blue-500
-        "
+          ${disabled ? "bg-gray-100 cursor-not-allowed" : ""}
+        `}
       />
     </div>
   );
@@ -62,10 +66,12 @@ const ModalContent: React.FC<ModalContentProps> = ({
     id: data?.id ?? "",
     sku: data?.sku ?? "",
     name: data?.name ?? "",
+    size: data?.size ?? "",
     price: data? String(data.price) : "",
     stock: data? String(data.stock) : "",
     exp: data?.exp ?? "",
     supplier_name: data?.supplier_name ?? "",
+    discount_customer: data? String(data.discount_customer) : "",
   });
 
   return (
@@ -82,6 +88,7 @@ const ModalContent: React.FC<ModalContentProps> = ({
           label="SKU"
           value={local.sku}
           placeholder="SKU"
+          disabled
           onChange={(e) => setLocal((s) => ({ ...s, sku: e.target.value }))}
         />
 
@@ -93,6 +100,13 @@ const ModalContent: React.FC<ModalContentProps> = ({
         />
 
         <InputField
+          label="Size"
+          value={local.size}
+          placeholder="Size (contoh: 50ml)"
+          onChange={(e) => setLocal((s) => ({ ...s, size: e.target.value }))}
+        />
+
+        <InputField
           label="Harga"
           type="number"
           value={local.price}
@@ -101,11 +115,11 @@ const ModalContent: React.FC<ModalContentProps> = ({
         />
 
         <InputField
-          label="Quantity"
+          label="Discount Customer"
           type="number"
-          value={local.stock}
-          placeholder="Stok"
-          onChange={(e) => setLocal((s) => ({ ...s, stock: e.target.value }))}
+          value={local.discount_customer}
+          placeholder="Discount Customer"
+          onChange={(e) => setLocal((s) => ({ ...s, discount_customer: e.target.value }))}
         />
 
         <InputField
@@ -114,15 +128,6 @@ const ModalContent: React.FC<ModalContentProps> = ({
           value={local.exp}
           placeholder=""
           onChange={(e) => setLocal((s) => ({ ...s, exp: e.target.value }))}
-        />
-
-        <InputField
-          label="Supplier"
-          value={local.supplier_name}
-          placeholder="Supplier"
-          onChange={(e) =>
-            setLocal((s) => ({ ...s, supplier_name: e.target.value }))
-          }
         />
       </div>
 
@@ -168,10 +173,10 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       body: JSON.stringify({
         sku: data.sku,
         name: data.name,
+        size: data.size,
+        exp: data.exp ? new Date(data.exp).toISOString() : "",
         price: Number(data.price),
-        stock: Number(data.stock),
-        exp: data.exp,
-        supplier_name: data.supplier_name,
+        discount_customer: Number(data.discount_customer) || 0,
       }),
     });
 
