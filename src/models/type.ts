@@ -4,11 +4,13 @@ export type TypeProduct = {
   name: string;
   size: string;
   price: number;
+  capital: number;
   stock: number;
   exp: string;
   discount: number;
   discount_customer: number;
   supplier_name: string;
+  profit_percentage: number;
 };
 
 export type TypeCustomer = {

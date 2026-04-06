@@ -102,6 +102,7 @@ export default function Product() {
               <th className="px-4 py-3 text-left">Nama Produk</th>
               <th className="px-4 py-3 text-left">Size</th>
               <th className="px-4 py-3 text-left">Harga</th>
+              <th className="px-4 py-3 text-left">Laba</th>
               <th className="px-4 py-3 text-left">Discount</th>
               <th className="px-4 py-3 text-left">Stock</th>
               <th className="px-4 py-3 text-left">Expired</th>
@@ -113,7 +114,7 @@ export default function Product() {
           <tbody className="divide-y">
             {loading && (
               <tr>
-                <td colSpan={role === "Admin" ? 9 : 8} className="px-4 py-6 text-center">
+                <td colSpan={role === "Admin" ? 10 : 9} className="px-4 py-6 text-center">
                   Loading...
                 </td>
               </tr>
@@ -121,7 +122,7 @@ export default function Product() {
 
             {!loading && products.length === 0 && (
               <tr>
-                <td colSpan={role === "Admin" ? 9 : 8} className="px-4 py-6 text-center text-gray-500">
+                <td colSpan={role === "Admin" ? 10 : 9} className="px-4 py-6 text-center text-gray-500">
                   Data tidak ditemukan
                 </td>
               </tr>
@@ -134,6 +135,11 @@ export default function Product() {
                 <td className="px-4 py-3">{item.size}</td>
                 <td className="px-4 py-3">
                   Rp {item.price?.toLocaleString()}
+                </td>
+                <td className="px-4 py-3">
+                  <span className={item.profit_percentage < 0 ? "text-red-600" : "text-green-600"}>
+                    {item.profit_percentage?.toFixed(1)}%
+                  </span>
                 </td>
                 <td className="px-4 py-3">
                   Rp {item?.discount_customer?.toLocaleString() || 0}
