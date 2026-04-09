@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import AddCostModal from "@/components/modal/cost/AddCost";
+import EditCostModal from "@/components/modal/cost/EditCost";
 import { TypeCost} from "@/models/type_cost";
 import { Pagination } from "@/models/type";
 
@@ -11,6 +12,8 @@ export default function CostPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [openAdd, setOpenAdd] = useState(false);
+  const [openEdit, setOpenEdit] = useState(false);
+  const [editCost, setEditCost] = useState<TypeCost | null>(null);
   const [pagination, setPagination] = useState<Pagination | null>(null);
 
   const limit = 10;
@@ -100,13 +103,14 @@ export default function CostPage() {
               <th className="px-4 py-3 text-left">Nominal</th>
               <th className="px-4 py-3 text-left">Dibuat Oleh</th>
               <th className="px-4 py-3 text-left">Tanggal</th>
+              <th className="px-4 py-3 text-left">Aksi</th>
             </tr>
           </thead>
 
           <tbody className="divide-y">
             {loading && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center">
+                <td colSpan={5} className="px-4 py-6 text-center">
                   Loading...
                 </td>
               </tr>
@@ -114,7 +118,7 @@ export default function CostPage() {
 
             {!loading && costs.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-500">
+                <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
                   Data tidak ditemukan
                 </td>
               </tr>
@@ -129,6 +133,18 @@ export default function CostPage() {
                 <td className="px-4 py-3">{item.created_by_name}</td>
                 <td className="px-4 py-3">
                   {new Date(item.created_at).toLocaleDateString("id-ID")}
+                </td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => {
+                      setEditCost(item);
+                      setOpenEdit(true);
+                    }}
+                    className="rounded bg-yellow-500 px-3 py-1 text-xs font-medium
+                      text-white hover:bg-yellow-600 transition"
+                  >
+                    Edit
+                  </button>
                 </td>
               </tr>
             ))}
@@ -204,6 +220,15 @@ export default function CostPage() {
       <AddCostModal
         open={openAdd}
         onClose={() => setOpenAdd(false)}
+        onSuccess={fetchCosts}
+      />
+      <EditCostModal
+        open={openEdit}
+        cost={editCost}
+        onClose={() => {
+          setOpenEdit(false);
+          setEditCost(null);
+        }}
         onSuccess={fetchCosts}
       />
     </div>
