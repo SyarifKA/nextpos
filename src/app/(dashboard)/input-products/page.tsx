@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { Search } from "lucide-react";
+import { TypeProduct } from "@/models/type";
 
 interface Supplier {
   id: string;
@@ -55,6 +57,97 @@ export default function AddProductPage() {
   const [form, setForm] = useState<ProductForm>(getDefaultForm());
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // ================= PRODUCT SEARCH PER ROW =================
+  const [searchQueries, setSearchQueries] = useState<string[]>([""]);
+  const [searchResults, setSearchResults] = useState<TypeProduct[][]>([[]]);
+  const [openDropdown, setOpenDropdown] = useState<boolean[]>([false]);
+  const searchTimeouts = useRef<(NodeJS.Timeout | null)[]>([]);
+  const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const searchProduct = useCallback(async (query: string, index: number) => {
+    if (!query.trim()) {
+      setSearchResults((prev) => {
+        const updated = [...prev];
+        updated[index] = [];
+        return updated;
+      });
+      return;
+    }
+    try {
+      const res = await fetch(`/api/product?page=1&limit=5&search=${encodeURIComponent(query)}`);
+      const json = await res.json();
+      setSearchResults((prev) => {
+        const updated = [...prev];
+        updated[index] = json.data || [];
+        return updated;
+      });
+    } catch {
+      // silent fail
+    }
+  }, []);
+
+  const handleSearchChange = (index: number, value: string) => {
+    setSearchQueries((prev) => {
+      const updated = [...prev];
+      updated[index] = value;
+      return updated;
+    });
+    setOpenDropdown((prev) => {
+      const updated = [...prev];
+      updated[index] = true;
+      return updated;
+    });
+
+    // debounce 300ms
+    if (searchTimeouts.current[index]) {
+      clearTimeout(searchTimeouts.current[index]!);
+    }
+    searchTimeouts.current[index] = setTimeout(() => {
+      searchProduct(value, index);
+    }, 300);
+  };
+
+  const selectProduct = (index: number, product: TypeProduct) => {
+    updateProduct(index, "sku", product.sku);
+    updateProduct(index, "name", product.name);
+    updateProduct(index, "size", product.size);
+    updateProduct(index, "price", String(product.price));
+    updateProduct(index, "discount_customer", String(product.discount_customer));
+    updateProduct(index, "capital", String(product.capital));
+
+    setSearchQueries((prev) => {
+      const updated = [...prev];
+      updated[index] = "";
+      return updated;
+    });
+    setSearchResults((prev) => {
+      const updated = [...prev];
+      updated[index] = [];
+      return updated;
+    });
+    setOpenDropdown((prev) => {
+      const updated = [...prev];
+      updated[index] = false;
+      return updated;
+    });
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      setOpenDropdown((prev) =>
+        prev.map((open, i) => {
+          if (open && dropdownRefs.current[i] && !dropdownRefs.current[i]!.contains(e.target as Node)) {
+            return false;
+          }
+          return open;
+        })
+      );
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
     const calculateProduct = (p: ProductItemForm) => {
     const capital = Number(p.capital || 0);
@@ -155,6 +248,9 @@ export default function AddProductPage() {
       ...s,
       product: [...s.product, { ...defaultProductItem }],
     }));
+    setSearchQueries((prev) => [...prev, ""]);
+    setSearchResults((prev) => [...prev, []]);
+    setOpenDropdown((prev) => [...prev, false]);
   };
 
   const removeRow = (index: number) => {
@@ -162,16 +258,29 @@ export default function AddProductPage() {
       ...s,
       product: s.product.filter((_, i) => i !== index),
     }));
+    setSearchQueries((prev) => prev.filter((_, i) => i !== index));
+    setSearchResults((prev) => prev.filter((_, i) => i !== index));
+    setOpenDropdown((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const numericFields: (keyof ProductItemForm)[] = [
+    "qty", "capital", "price", "discount_customer",
+  ];
 
   const updateProduct = (
     index: number,
     field: keyof ProductItemForm,
     value: string
   ) => {
+    if (numericFields.includes(field) && value !== "" && Number(value) < 0) return;
     const updated = [...form.product];
     updated[index][field] = value;
     setForm({ ...form, product: updated });
+  };
+
+  const updateFormNumeric = (field: "discount_supplier" | "ppn", value: string) => {
+    if (value !== "" && Number(value) < 0) return;
+    setForm({ ...form, [field]: value });
   };
 
   // ================= SUBMIT =================
@@ -215,6 +324,9 @@ export default function AddProductPage() {
 
       // 🔥 RESET FORM
       setForm(getDefaultForm());
+      setSearchQueries([""]);
+      setSearchResults([[]]);
+      setOpenDropdown([false]);
 
     } catch (err) {
       alert("Gagal menambahkan product");
@@ -303,13 +415,9 @@ export default function AddProductPage() {
           <label>Discount Supplier</label>
           <input
             type="number"
+            min="0"
             value={form.discount_supplier}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                discount_supplier: e.target.value,
-              })
-            }
+            onChange={(e) => updateFormNumeric("discount_supplier", e.target.value)}
             className="border px-4 py-3 rounded-lg"
           />
         </div>
@@ -318,13 +426,9 @@ export default function AddProductPage() {
           <label>PPN (%)</label>
           <input
             type="number"
+            min="0"
             value={form.ppn}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                ppn: e.target.value,
-              })
-            }
+            onChange={(e) => updateFormNumeric("ppn", e.target.value)}
             className="border px-4 py-3 rounded-lg"
           />
         </div>
@@ -378,6 +482,51 @@ export default function AddProductPage() {
             </button>
           )}
 
+          {/* Search Product */}
+          <div
+            ref={(el) => { dropdownRefs.current[index] = el; }}
+            className="relative mb-4"
+          >
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              placeholder="Cari produk (nama / barcode)..."
+              value={searchQueries[index] || ""}
+              onChange={(e) => handleSearchChange(index, e.target.value)}
+              onFocus={() =>
+                setOpenDropdown((prev) => {
+                  const updated = [...prev];
+                  updated[index] = true;
+                  return updated;
+                })
+              }
+              className="w-full pl-10 pr-4 py-3 border bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {openDropdown[index] && (searchResults[index]?.length ?? 0) > 0 && (
+              <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow max-h-60 overflow-auto">
+                {searchResults[index].map((product) => (
+                  <button
+                    key={product.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => selectProduct(index, product)}
+                    className="w-full text-left px-4 py-3 hover:bg-blue-50 border-b last:border-b-0"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="font-medium">{product.name}</span>
+                        <span className="text-gray-400 ml-2 text-sm">{product.size}</span>
+                      </div>
+                      <span className="text-sm text-gray-500">Rp {product.price.toLocaleString()}</span>
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      SKU: {product.sku} • Stok: {product.stock}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
               placeholder="Barcode"
@@ -405,6 +554,7 @@ export default function AddProductPage() {
             />
             <input
               type="number"
+              min="0"
               placeholder="Pcs"
               value={item.qty}
               onChange={(e) =>
@@ -414,6 +564,7 @@ export default function AddProductPage() {
             />
             <input
               type="number"
+              min="0"
               placeholder="Harga modal satuan"
               value={item.capital}
               onChange={(e) =>
@@ -423,6 +574,7 @@ export default function AddProductPage() {
             />
             <input
               type="number"
+              min="0"
               placeholder="harga jual satuan"
               value={item.price}
               onChange={(e) =>
@@ -432,6 +584,7 @@ export default function AddProductPage() {
             />
             <input
               type="number"
+              min="0"
               placeholder="Diskon produk"
               value={item.discount_customer}
               onChange={(e) =>
