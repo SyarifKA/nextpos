@@ -4,13 +4,17 @@ import { useState, useEffect } from "react"
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
 } from "recharts"
 
-import { Users, Printer } from "lucide-react"
+import { Printer, Trophy } from "lucide-react"
 import { TypeTransaction, Pagination } from "@/models/type"
 import PrintConfirmModal from "@/components/modal/print/PrintConfirm"
 import React from "react"
@@ -49,6 +53,17 @@ export default function DashboardPOS() {
   const [filter, setFilter] = useState<"today" | "week" | "month" | "year">("today");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  // Sales ranking state
+  type SalesRanking = {
+    user_id: string;
+    user_name: string;
+    total_transaction: number;
+    total_amount: number;
+    period: string;
+  };
+  const [salesRanking, setSalesRanking] = useState<SalesRanking[]>([]);
+  const [rankingPeriod, setRankingPeriod] = useState<"daily" | "weekly" | "monthly" | "yearly">("monthly");
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -97,6 +112,19 @@ export default function DashboardPOS() {
   };
 
 
+  const fetchSalesRanking = async () => {
+    try {
+      const res = await fetch(`/api/transaction/amount-trx?period=${rankingPeriod}`);
+      const json = await res.json();
+      const data: SalesRanking[] = json.data || [];
+      // Sort by total_amount descending
+      data.sort((a, b) => b.total_amount - a.total_amount);
+      setSalesRanking(data);
+    } catch (error) {
+      console.error("Failed fetch sales ranking", error);
+    }
+  };
+
   useEffect(() => {
     fetchDataDashboard();
   }, [filter]);
@@ -104,6 +132,10 @@ export default function DashboardPOS() {
   useEffect(() => {
     fetchTransactions();
   }, [page, search]);
+
+  useEffect(() => {
+    fetchSalesRanking();
+  }, [rankingPeriod]);
 
   const chartData =
     chartType === "daily"
@@ -293,6 +325,108 @@ export default function DashboardPOS() {
             </ResponsiveContainer>
 
           </div>
+        </div>
+      </div>
+
+      {/* ================= SALES RANKING ================= */}
+      <div className="card bg-base-100 shadow px-8">
+        <div className="card-body space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-yellow-500" />
+              Peringkat Penjualan
+            </h2>
+            <select
+              className="select select-bordered select-sm w-35"
+              value={rankingPeriod}
+              onChange={(e) =>
+                setRankingPeriod(e.target.value as "daily" | "weekly" | "monthly" | "yearly")
+              }
+            >
+              <option value="daily">Hari Ini</option>
+              <option value="weekly">Minggu Ini</option>
+              <option value="monthly">Bulan Ini</option>
+              <option value="yearly">Tahun Ini</option>
+            </select>
+          </div>
+
+          {salesRanking.length > 0 ? (
+            <>
+              <div className="h-65">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={salesRanking}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+                    layout="vertical"
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                    <XAxis
+                      type="number"
+                      tickFormatter={(v) => `Rp ${(v / 1000).toFixed(0)}k`}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="user_name"
+                      width={100}
+                      tick={{ fontSize: 13 }}
+                    />
+                    <Tooltip
+                      formatter={(value) => [
+                        `Rp ${Number(value || 0).toLocaleString("id-ID")}`,
+                        "Total Penjualan",
+                      ]}
+                    />
+                    <Bar dataKey="total_amount" radius={[0, 6, 6, 0]} barSize={32}>
+                      {salesRanking.map((_, index) => {
+                        const colors = ["#f59e0b", "#6b7280", "#b45309", "#3b82f6", "#10b981", "#8b5cf6"];
+                        return <Cell key={index} fill={colors[index % colors.length]} />;
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Ranking table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left">
+                      <th className="p-2 w-12">#</th>
+                      <th className="p-2">Kasir</th>
+                      <th className="p-2 text-right">Jumlah Transaksi</th>
+                      <th className="p-2 text-right">Total Penjualan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {salesRanking.map((item, index) => (
+                      <tr key={item.user_id} className="border-b hover:bg-gray-50">
+                        <td className="p-2">
+                          {index === 0 ? (
+                            <span className="text-yellow-500 font-bold text-lg">🥇</span>
+                          ) : index === 1 ? (
+                            <span className="text-gray-400 font-bold text-lg">🥈</span>
+                          ) : index === 2 ? (
+                            <span className="text-amber-700 font-bold text-lg">🥉</span>
+                          ) : (
+                            <span className="text-gray-500 font-medium">{index + 1}</span>
+                          )}
+                        </td>
+                        <td className="p-2 font-medium">{item.user_name}</td>
+                        <td className="p-2 text-right">{item.total_transaction} trx</td>
+                        <td className="p-2 text-right font-semibold text-green-600">
+                          Rp {item.total_amount.toLocaleString("id-ID")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-gray-400">
+              Belum ada data penjualan untuk periode ini.
+            </div>
+          )}
         </div>
       </div>
 

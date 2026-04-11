@@ -56,6 +56,7 @@ const menu: MenuSection[] = [
         children: [
           { name: "penjualan", path: "/sales" },
           { name: "riwayat transaksi", path: "/transaction-history" },
+          { name: "retur customer", path: "/customer-return" },
         ],
       },
       {

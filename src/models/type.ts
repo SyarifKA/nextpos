@@ -50,6 +50,7 @@ export interface InputProps {
 
 export interface TypeTransaction{
   id: string;
+  invoice_id: string;
   customer_id: string;
   customer_name: string;
   subtotal: number;
@@ -88,6 +89,20 @@ export interface CheckoutProduct {
   stock_id: string;
   qty: number;
 }
+
+export type TypeCustomerReturn = {
+  id: string;
+  transaction_detail_id: string;
+  transaction_id: string;
+  product_name: string;
+  product_size: string;
+  qty: number;
+  refund_amount: number;
+  condition: string;
+  reason: string;
+  created_by_name: string;
+  created_at: string;
+};
 
 export type TempoProduct = {
   id: string;

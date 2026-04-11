@@ -4,8 +4,9 @@ import React from "react"
 import { useEffect, useState } from "react";
 import { Pagination , TypeTransaction} from "@/models/type";
 import { motion, AnimatePresence } from "framer-motion";
-import { Printer } from "lucide-react";
+import { Printer, RotateCcw } from "lucide-react";
 import PrintConfirmModal from "@/components/modal/print/PrintConfirm";
+import CustomerReturnModal from "@/components/modal/transaction/CustomerReturnModal";
 
 export default function HistoryTrxPage() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -14,6 +15,8 @@ export default function HistoryTrxPage() {
   const [expandedTrxId, setExpandedTrxId] = useState<string | null>(null)
   const [selectedTrx, setSelectedTrx] = useState<TypeTransaction | null>(null);
   const [openPrint, setOpenPrint] = useState(false);
+  const [returnTrx, setReturnTrx] = useState<TypeTransaction | null>(null);
+  const [openReturn, setOpenReturn] = useState(false);
   
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -76,7 +79,7 @@ export default function HistoryTrxPage() {
         <table className="flex flex-col table-zebra table-sm w-full">
             <thead className="flex w-full bg-base-200 border bg-primary text-white">
                 <tr className="flex w-full justify-between border px-8 text-center py-2 font-semibold">
-                    <td className="w-1/5">ID</td>
+                    <td className="w-1/5">Invoice ID</td>
                     <td className="w-1/5">Customer</td>
                     <td className="w-1/5">Total</td>
                     <td className="w-1/5">Tanggal</td>
@@ -88,7 +91,7 @@ export default function HistoryTrxPage() {
                 <React.Fragment key={trx.id}>
                   {/* ===== MAIN ROW ===== */}
                   <tr className="hover w-full flex justify-between border py-2 px-8 items-start">
-                    <td className="w-1/5 text-center">{trx.id}</td>
+                    <td className="w-1/5 text-center">{trx.invoice_id}</td>
                     <td className="w-1/5 text-center">{trx.customer_name || "-"}</td>
                     <td className="w-1/5 text-center">
                       Rp {trx.grand_total.toLocaleString("id-ID")}
@@ -123,13 +126,25 @@ export default function HistoryTrxPage() {
                                 <p className="font-semibold">Transaction Detail</p>
                                 <p className="text-sm">Cashier: {trx.cashier}</p>
                               </div>
-                              <button
-                                onClick={() => handlePrintClick(trx)}
-                                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
-                              >
-                                <Printer size={16} />
-                                Print
-                              </button>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => {
+                                    setReturnTrx(trx);
+                                    setOpenReturn(true);
+                                  }}
+                                  className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-md"
+                                >
+                                  <RotateCcw size={16} />
+                                  Retur
+                                </button>
+                                <button
+                                  onClick={() => handlePrintClick(trx)}
+                                  className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
+                                >
+                                  <Printer size={16} />
+                                  Print
+                                </button>
+                              </div>
                             </div>
                             <table className="w-full text-sm">
                               <thead>
@@ -217,6 +232,19 @@ export default function HistoryTrxPage() {
           onClose={() => {
             setOpenPrint(false);
             setSelectedTrx(null);
+          }}
+        />
+      )}
+      {returnTrx && (
+        <CustomerReturnModal
+          open={openReturn}
+          transaction={returnTrx}
+          onClose={() => {
+            setOpenReturn(false);
+            setReturnTrx(null);
+          }}
+          onSuccess={() => {
+            fetchTransactions();
           }}
         />
       )}
