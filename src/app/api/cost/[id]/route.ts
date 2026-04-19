@@ -77,3 +77,36 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { status: "UNAUTHORIZED", message: "Token not found" },
+        { status: 401 }
+      );
+    }
+
+    const res = await fetch(`${API_SERVER}cost/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
+  } catch {
+    return NextResponse.json(
+      { status: "ER500", statusMessage: "API server unreachable" },
+      { status: 500 }
+    );
+  }
+}

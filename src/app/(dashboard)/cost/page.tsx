@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import AddCostModal from "@/components/modal/cost/AddCost";
 import EditCostModal from "@/components/modal/cost/EditCost";
+import DeleteCostModal from "@/components/modal/cost/DeleteCost";
 import { TypeCost} from "@/models/type_cost";
 import { Pagination } from "@/models/type";
 
@@ -14,6 +15,8 @@ export default function CostPage() {
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [editCost, setEditCost] = useState<TypeCost | null>(null);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [deleteCost, setDeleteCost] = useState<TypeCost | null>(null);
   const [pagination, setPagination] = useState<Pagination | null>(null);
 
   const limit = 10;
@@ -135,16 +138,28 @@ export default function CostPage() {
                   {new Date(item.created_at).toLocaleDateString("id-ID")}
                 </td>
                 <td className="px-4 py-3">
-                  <button
-                    onClick={() => {
-                      setEditCost(item);
-                      setOpenEdit(true);
-                    }}
-                    className="rounded bg-yellow-500 px-3 py-1 text-xs font-medium
-                      text-white hover:bg-yellow-600 transition"
-                  >
-                    Edit
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditCost(item);
+                        setOpenEdit(true);
+                      }}
+                      className="rounded bg-yellow-500 px-3 py-1 text-xs font-medium
+                        text-white hover:bg-yellow-600 transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeleteCost(item);
+                        setOpenDelete(true);
+                      }}
+                      className="rounded bg-red-500 px-3 py-1 text-xs font-medium
+                        text-white hover:bg-red-600 transition"
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -228,6 +243,15 @@ export default function CostPage() {
         onClose={() => {
           setOpenEdit(false);
           setEditCost(null);
+        }}
+        onSuccess={fetchCosts}
+      />
+      <DeleteCostModal
+        open={openDelete}
+        cost={deleteCost}
+        onClose={() => {
+          setOpenDelete(false);
+          setDeleteCost(null);
         }}
         onSuccess={fetchCosts}
       />
