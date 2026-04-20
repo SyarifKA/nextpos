@@ -139,13 +139,13 @@ export default function TempoProductPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-3 md:p-6 space-y-4">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-semibold text-gray-800">
+        <h1 className="text-xl md:text-3xl font-semibold text-gray-800">
           Produk Tempo (Hutang Supplier)
         </h1>
-        <p className="text-gray-500 mt-1">
+        <p className="text-gray-500 text-sm mt-1">
           Daftar produk yang pembayarannya menggunakan sistem tempo
         </p>
       </div>
@@ -165,26 +165,26 @@ export default function TempoProductPage() {
             }}
           />
         </div>
-        
+
         {/* Summary Cards */}
-        <div className="flex gap-3">
-          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+        <div className="grid grid-cols-2 md:flex gap-2 md:gap-3">
+          <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2">
             <span className="text-xs text-red-600 font-medium">Belum Lunas</span>
-            <p className="text-lg font-bold text-red-700">
+            <p className="text-base md:text-lg font-bold text-red-700">
               {totalUnpaid}
             </p>
           </div>
-          <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-2">
+          <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
             <span className="text-xs text-green-600 font-medium">Total Items</span>
-            <p className="text-lg font-bold text-green-700">
+            <p className="text-base md:text-lg font-bold text-green-700">
               {pagination?.total_data || 0}
             </p>
           </div>
         </div>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      {/* DESKTOP TABLE */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-sm">
           <thead className="bg-primary text-white">
             <tr>
@@ -250,9 +250,69 @@ export default function TempoProductPage() {
         </table>
       </div>
 
+      {/* MOBILE CARDS */}
+      <div className="md:hidden space-y-2">
+        {loading && (
+          <div className="p-6 text-center text-gray-500 text-sm">Loading...</div>
+        )}
+
+        {!loading && products.length === 0 && (
+          <div className="p-6 text-center text-gray-500 text-sm">
+            Data tidak ditemukan
+          </div>
+        )}
+
+        {products.map((item) => (
+          <div key={item.id} className="border rounded-lg p-3 bg-white">
+            <div className="flex justify-between items-start gap-2 mb-2">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-sm truncate">{item.name}</div>
+                <div className="text-xs text-gray-500 font-mono mt-0.5 truncate">
+                  {item.sku}
+                  {item.size && (
+                    <span className="ml-2 text-gray-400">{item.size}</span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5 truncate">
+                  Supplier: {item.supplier_name}
+                </div>
+              </div>
+              <div className="shrink-0">{getStatusBadge(item.status)}</div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs pt-2 border-t">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Stock</span>
+                <span className="font-medium">{item.stock}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Jatuh tempo</span>
+                <span className="font-medium">{formatDate(item.due_payment)}</span>
+              </div>
+              <div className="flex justify-between col-span-2">
+                <span className="text-gray-500">Total bayar</span>
+                <span className="font-semibold text-green-600">
+                  {formatCurrency((item.price - item.discount) * item.stock)}
+                </span>
+              </div>
+            </div>
+
+            {item.status === "not_paid" && (
+              <button
+                onClick={() => handlePaymentClick(item)}
+                className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition"
+              >
+                <CreditCard size={14} />
+                Bayar Sekarang
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
       {/* PAGINATION */}
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex justify-end items-center gap-1 mt-3">
+        <div className="flex justify-center md:justify-end items-center gap-1 mt-3 flex-wrap">
           {/* First */}
           <button
             disabled={page === 1}

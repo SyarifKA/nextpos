@@ -32,14 +32,20 @@ export default function CustomerReturnPage() {
     fetchReturns();
   }, [fetchReturns]);
 
+  const conditionBadgeClass = (condition: string) => {
+    if (condition === "baik") return "bg-green-100 text-green-700";
+    if (condition === "rusak") return "bg-red-100 text-red-700";
+    return "bg-yellow-100 text-yellow-700";
+  };
+
   return (
-    <div className="p-4 md:p-6 space-y-4">
-      <h1 className="text-3xl font-semibold text-gray-800 flex items-center gap-3">
-        <RotateCcw className="w-8 h-8" />
+    <div className="p-3 md:p-6 space-y-4">
+      <h1 className="text-xl md:text-3xl font-semibold text-gray-800 flex items-center gap-2 md:gap-3">
+        <RotateCcw className="w-6 h-6 md:w-8 md:h-8" />
         Riwayat Retur Customer
       </h1>
 
-      <p className="text-sm text-gray-500">
+      <p className="text-xs md:text-sm text-gray-500">
         Untuk membuat retur baru, buka{" "}
         <strong>Riwayat Transaksi</strong> lalu klik tombol{" "}
         <strong>Retur</strong> pada transaksi yang diinginkan.
@@ -56,7 +62,8 @@ export default function CustomerReturnPage() {
         }}
       />
 
-      <div className="overflow-x-auto rounded-lg border bg-white">
+      {/* DESKTOP TABLE */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border bg-white">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-gray-50 text-left">
@@ -98,13 +105,7 @@ export default function CustomerReturnPage() {
                   </td>
                   <td className="p-3">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        r.condition === "baik"
-                          ? "bg-green-100 text-green-700"
-                          : r.condition === "rusak"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${conditionBadgeClass(r.condition)}`}
                     >
                       {r.condition}
                     </span>
@@ -120,9 +121,67 @@ export default function CustomerReturnPage() {
         </table>
       </div>
 
+      {/* MOBILE CARDS */}
+      <div className="md:hidden space-y-2">
+        {loading && (
+          <div className="p-6 text-center text-gray-500 text-sm">Memuat data...</div>
+        )}
+
+        {!loading && returns.length === 0 && (
+          <div className="p-6 text-center text-gray-500 text-sm">
+            Belum ada data retur.
+          </div>
+        )}
+
+        {returns.map((r) => (
+          <div key={r.id} className="border rounded-lg p-3 bg-white">
+            <div className="flex justify-between items-start gap-2 mb-2">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-sm truncate">
+                  {r.product_name}
+                  {r.product_size && (
+                    <span className="text-gray-400 ml-1 text-xs">
+                      {r.product_size}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-400 font-mono mt-0.5 truncate">
+                  {r.id}
+                </div>
+              </div>
+              <span
+                className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium ${conditionBadgeClass(r.condition)}`}
+              >
+                {r.condition}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs pt-2 border-t">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Qty</span>
+                <span className="font-medium">{r.qty}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Refund</span>
+                <span className="font-semibold text-green-600">
+                  Rp {r.refund_amount.toLocaleString("id-ID")}
+                </span>
+              </div>
+              <div className="flex justify-between col-span-2">
+                <span className="text-gray-500">
+                  Oleh: <strong className="text-gray-800">{r.created_by_name}</strong>
+                </span>
+                <span className="text-gray-400">
+                  {new Date(r.created_at).toLocaleDateString("id-ID")}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* PAGINATION */}
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex justify-end gap-1">
+        <div className="flex justify-center md:justify-end gap-1 flex-wrap">
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}

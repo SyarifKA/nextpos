@@ -4,6 +4,7 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [username, setUsername] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
 
+  // Guard to prevent duplicate redirects (React 19 strict mode re-runs effects)
+  const redirectingRef = useRef(false);
+
+  const safeRedirectToLogin = () => {
+    if (redirectingRef.current) return;
+    redirectingRef.current = true;
+    try {
+      router.replace("/login");
+    } catch (err) {
+      console.warn("Redirect failed", err);
+    }
+  };
+
 
   // ===============================
   // CHECK AUTH ON FIRST LOAD
@@ -61,9 +75,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ===============================
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.replace("/login");
+      safeRedirectToLogin();
+    } else if (isAuthenticated) {
+      // reset guard when re-authenticated
+      redirectingRef.current = false;
     }
-  }, [loading, isAuthenticated, router]);
+  }, [loading, isAuthenticated]);
 
   // ===============================
   // WATCH COOKIE CHANGES (LOGOUT)
@@ -73,12 +90,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!cookieUtils.hasAuthToken() && isAuthenticated) {
         setToken(null);
         setIsAuthenticated(false);
-        router.replace("/login");
+        safeRedirectToLogin();
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   // ===============================
   // LOGIN

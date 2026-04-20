@@ -85,11 +85,18 @@ export default function StockHistory() {
   };
 
 
+  const typeBadgeClass = (type: string) => {
+    if (type === "stock_in") return "bg-green-100 text-green-700";
+    if (["sale", "supplier_return", "waste"].includes(type))
+      return "bg-red-100 text-red-700";
+    return "bg-gray-100 text-gray-700";
+  };
+
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-3 md:p-6 space-y-4">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-semibold text-gray-800">
+        <h1 className="text-xl md:text-3xl font-semibold text-gray-800">
           Riwayat stock
         </h1>
       </div>
@@ -111,8 +118,8 @@ export default function StockHistory() {
         </div>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      {/* DESKTOP TABLE */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-sm">
           <thead className="bg-primary text-white">
             <tr>
@@ -149,14 +156,9 @@ export default function StockHistory() {
                 <td className="px-4 py-3">{item.product_name}</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`rounded px-2 py-1 text-xs font-medium
-                      ${item.type === "sale" && "bg-red-100 text-red-700"}
-                      ${item.type === "supplier_return" && "bg-red-100 text-red-700"}
-                      ${item.type === "waste" && "bg-red-100 text-red-700"}
-                      ${item.type === "stock_in" && "bg-green-100 text-green-700"}
-                    `}
+                    className={`rounded px-2 py-1 text-xs font-medium ${typeBadgeClass(item.type)}`}
                   >
-                  {getStockTypeLabel(item.type)}
+                    {getStockTypeLabel(item.type)}
                   </span>
                 </td>
                 <td className="px-4 py-3">{item.note}</td>
@@ -171,9 +173,58 @@ export default function StockHistory() {
         </table>
       </div>
 
+      {/* MOBILE CARDS */}
+      <div className="md:hidden space-y-2">
+        {loading && (
+          <div className="p-6 text-center text-gray-500 text-sm">Loading...</div>
+        )}
+
+        {!loading && stockMovement.length === 0 && (
+          <div className="p-6 text-center text-gray-500 text-sm">
+            Data tidak ditemukan
+          </div>
+        )}
+
+        {stockMovement.map((item) => (
+          <div key={item.id} className="border rounded-lg p-3 bg-white">
+            <div className="flex justify-between items-start gap-2 mb-2">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-sm truncate">
+                  {item.product_name}
+                </div>
+                <div className="text-xs text-gray-500 font-mono mt-0.5 truncate">
+                  {item.sku}
+                </div>
+              </div>
+              <span
+                className={`shrink-0 rounded px-2 py-1 text-xs font-medium ${typeBadgeClass(item.type)}`}
+              >
+                {getStockTypeLabel(item.type)}
+              </span>
+            </div>
+            {item.note && (
+              <div className="text-xs text-gray-600 mb-2 italic">
+                &ldquo;{item.note}&rdquo;
+              </div>
+            )}
+            <div className="flex justify-between text-xs pt-2 border-t">
+              <span className="text-gray-500">
+                Qty: <strong className="text-gray-800">{item.qty}</strong>
+              </span>
+              <span className="text-gray-500">
+                Oleh: <strong className="text-gray-800">{item.created_by_name}</strong>
+              </span>
+              <span className="text-gray-400">
+                {new Date(item.created_at).toLocaleDateString("id-ID")}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* PAGINATION */}
       {pagination && pagination.total_pages > 1 && (
-            <div className="flex justify-end items-center gap-1 mt-3">
+            <div className="flex justify-center md:justify-end items-center gap-1 mt-3 flex-wrap">
               {/* First */}
               <button
                 disabled={page === 1}

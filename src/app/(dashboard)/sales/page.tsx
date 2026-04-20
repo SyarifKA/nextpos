@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
-import { Search } from "lucide-react";
+import { Search, Sparkles, Percent, Check, Settings2 } from "lucide-react";
 import TransactionConfirmModal from "@/components/modal/transaction/CreateTransaction";
 import { TypeCustomer, PayloadTransaction, Pagination} from "@/models/type";
 import { TypeStock } from "@/models/type_stock";
@@ -33,8 +33,53 @@ export default function PosPage() {
   const [openCustomerDropdown, setOpenCustomerDropdown] = useState(false);
   const [payload, setPayload] = useState<PayloadTransaction| null>(null)
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  const { username } = useAuth();
+  const { username, role } = useAuth();
   const [cash, setCash] = useState<string>("");
+
+  // 10% discount feature
+  const [discount10Enabled, setDiscount10Enabled] = useState<boolean>(false);
+  const [useDiscount10, setUseDiscount10] = useState<boolean>(false);
+  const [togglingDiscount10, setTogglingDiscount10] = useState(false);
+
+  // Load admin toggle from backend setting
+  useEffect(() => {
+    const fetchSetting = async () => {
+      try {
+        const res = await fetch("/api/setting/discount_10_enabled");
+        const json = await res.json();
+        setDiscount10Enabled(json?.data?.value === "true");
+      } catch {
+        // silent — default to false
+      }
+    };
+    fetchSetting();
+  }, []);
+
+  const toggleDiscount10Feature = async () => {
+    if (togglingDiscount10) return;
+    const next = !discount10Enabled;
+
+    // Optimistic update
+    setDiscount10Enabled(next);
+    if (!next) setUseDiscount10(false);
+
+    setTogglingDiscount10(true);
+    try {
+      const res = await fetch("/api/setting/discount_10_enabled", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: String(next) }),
+      });
+      if (!res.ok) {
+        // Revert on failure
+        setDiscount10Enabled(!next);
+      }
+    } catch {
+      setDiscount10Enabled(!next);
+    } finally {
+      setTogglingDiscount10(false);
+    }
+  };
 
   const customerInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,6 +96,7 @@ export default function PosPage() {
   const buildPayloadTransaction = (): PayloadTransaction => {
     return {
       customer_id: selectedCustomer?.id || "",
+      use_discount_10: useDiscount10,
       transaction: cartItems.map((item) => ({
         product_id: item.product_id,
         stock_id: item.stock_id,
@@ -118,7 +164,7 @@ export default function PosPage() {
     };
   }, [query]);
 
-  const addToCart = (stock: TypeStock) => {
+  const addToCart = useCallback((stock: TypeStock) => {
     // Prevent adding products with no stock
     if (!stock.qty || stock.qty <= 0) {
       return;
@@ -148,7 +194,7 @@ export default function PosPage() {
         },
       ];
     });
-  };
+  }, []);
 
   // Auto-select produk ketika hasil pencarian tepat 1 (untuk barcode scanning)
   useEffect(() => {
@@ -182,31 +228,42 @@ export default function PosPage() {
     setCartItems((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
-  const subtotal = useMemo(() => {
-    return cartItems.reduce(
-      (sum, item) => sum + item.qty * Number(item.price - item.discount),
-      0
-    );
+  // Effective per-unit discount: 10% flat if useDiscount10, else product's own discount
+  const effectiveItemDiscount = useCallback(
+    (item: CartItem) =>
+      useDiscount10 ? Math.floor(item.price * 0.1) : item.discount,
+    [useDiscount10]
+  );
+
+  // Gross subtotal (price * qty, pre-discount) — matches BE's subtotal
+  const grossSubtotal = useMemo(() => {
+    return cartItems.reduce((sum, item) => sum + item.qty * item.price, 0);
   }, [cartItems]);
 
+  // Sum of per-product discounts (discount * qty)
+  const productDiscountTotal = useMemo(() => {
+    return cartItems.reduce(
+      (sum, item) => sum + item.qty * effectiveItemDiscount(item),
+      0
+    );
+  }, [cartItems, effectiveItemDiscount]);
+
+  // Subtotal after product discounts (what the user typically sees as "subtotal")
+  const subtotal = useMemo(
+    () => grossSubtotal - productDiscountTotal,
+    [grossSubtotal, productDiscountTotal]
+  );
 
   const discountMember = useMemo(() => {
+    // Member 2% only applies when not using 10% AND no product discount exists
+    if (useDiscount10) return 0;
     if (!selectedCustomer?.id) return 0;
-
-    // ❗ cek apakah ada produk yang punya discount
-    const hasProductDiscount = cartItems.some(
-      (item) => item.discount > 0
-    );
-
-    if (hasProductDiscount) return 0;
-
-    return Math.floor(subtotal * 0.02);
-  }, [selectedCustomer, subtotal, cartItems]);
-
+    if (productDiscountTotal > 0) return 0;
+    return Math.floor(grossSubtotal * 0.02);
+  }, [selectedCustomer, grossSubtotal, productDiscountTotal, useDiscount10]);
 
   const totals = useMemo(() => {
     const totalItems = cartItems.reduce((s, c) => s + c.qty, 0);
-    
     return {
       totalItems,
       totalPrice: subtotal - discountMember,
@@ -243,6 +300,7 @@ export default function PosPage() {
     setCustomerQuery("");
     setOpenCustomerDropdown(false);
     setCash("");
+    setUseDiscount10(false);
 
     inputRef.current?.focus();
   }, []);
@@ -300,38 +358,43 @@ export default function PosPage() {
   };
 
   return (
-    <div className="w-full min-h-screen p-6 bg-gray-50">
+    <div className="w-full min-h-screen p-3 md:p-6 bg-gray-50">
       {/* Header / Summary */}
-      <header className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="bg-white rounded-2xl p-6 shadow-sm w-full md:w-2/3">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex gap-4 items-center">
-              <div className="text-sm text-gray-500">Tanggal</div>
-              <div className="bg-gray-100 px-3 py-2 rounded">{new Date().toLocaleDateString()}</div>
-              <div className="text-sm text-gray-500">Kasir</div>
-              <div className="bg-gray-100 px-3 py-2 rounded">{username}</div>
+      <header className="mb-4 md:mb-6 flex flex-col md:flex-row md:items-stretch md:justify-between gap-3 md:gap-4">
+        <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-6 shadow-sm w-full md:w-2/3">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
+            <div className="flex flex-wrap gap-2 md:gap-4 items-center text-xs md:text-sm">
+              <div className="text-gray-500">Tanggal</div>
+              <div className="bg-gray-100 px-2 md:px-3 py-1 md:py-2 rounded">
+                {new Date().toLocaleDateString()}
+              </div>
+              <div className="text-gray-500">Kasir</div>
+              <div className="bg-gray-100 px-2 md:px-3 py-1 md:py-2 rounded truncate max-w-30">
+                {username}
+              </div>
             </div>
-            <div className="bg-gray-50 p-4 rounded-md text-right font-semibold">
-              <div className="text-sm text-gray-500">Total Belanja</div>
-              <div className="text-3xl">Rp {totals.totalPrice.toLocaleString()}</div>
+            <div className="bg-gray-50 p-3 md:p-4 rounded-md text-right font-semibold">
+              <div className="text-xs md:text-sm text-gray-500">Total Belanja</div>
+              <div className="text-xl md:text-3xl">
+                Rp {totals.totalPrice.toLocaleString()}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="w-full md:w-1/3 flex items-center gap-3">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <div className="w-full md:w-1/3 flex items-center gap-2 md:gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
             <input
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onPaste={(e) => {
-                // Cancel debounce, reset page ke 1, dan langsung trigger search
                 e.preventDefault();
                 if (searchTimeoutRef.current) {
                   clearTimeout(searchTimeoutRef.current);
                 }
-                setPage(1); // Reset ke halaman 1 saat search
+                setPage(1);
                 const pastedText = e.clipboardData.getData('text');
                 setQuery(pastedText);
                 setSearchTerm(pastedText.trim());
@@ -339,40 +402,40 @@ export default function PosPage() {
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  // Cancel debounce, reset page ke 1, dan langsung trigger search
                   if (searchTimeoutRef.current) {
                     clearTimeout(searchTimeoutRef.current);
                   }
-                  setPage(1); // Reset ke halaman 1 saat search
+                  setPage(1);
                   setSearchTerm(query.trim());
                   fetchStocksImmediate(query.trim());
                 }
               }}
               onBlur={() => {
-                // Trigger search saat input kehilangan fokus
                 if (query.trim()) {
                   setSearchTerm(query.trim());
                 }
               }}
-              placeholder="Cari produk (nama / barcode)..."
-              className="w-full pl-10 pr-3 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Cari produk..."
+              className="w-full pl-9 md:pl-10 pr-3 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           <button
-              onClick={resetTransaction}
-              className="px-4 py-2 bg-primary text-white rounded-lg"
-            >
-              Reset
-            </button>
+            onClick={resetTransaction}
+            className="px-3 md:px-4 py-2 text-sm bg-primary text-white rounded-lg whitespace-nowrap"
+          >
+            Reset
+          </button>
         </div>
       </header>
 
       {/* Main: produk kiri + cart kanan */}
-      <main className="flex flex-col lg:flex-row gap-6">
+      <main className="flex flex-col lg:flex-row gap-4 md:gap-6">
         {/* Produk (kiri) */}
-        <section className="bg-white rounded-md shadow p-4 h-fit flex-1 overflow-auto">
+        <section className="bg-white rounded-md shadow p-3 md:p-4 h-fit flex-1 overflow-auto">
           <h3 className="font-semibold mb-3">Daftar Produk</h3>
-          <div className="overflow-x-auto">
+
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left">
@@ -423,6 +486,60 @@ export default function PosPage() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-2">
+            {stocks.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => addToCart(p)}
+                disabled={!p.qty || p.qty <= 0}
+                className={`w-full text-left border rounded-lg p-3 transition active:scale-[0.98] ${
+                  !p.qty || p.qty <= 0
+                    ? "opacity-60 cursor-not-allowed bg-gray-50"
+                    : "bg-white hover:bg-blue-50 hover:border-blue-200"
+                }`}
+              >
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{p.name}</div>
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      {p.sku ?? p.id}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold">
+                      Rp {p.price.toLocaleString()}
+                    </div>
+                    {p.discount > 0 && (
+                      <div className="text-xs text-green-600">
+                        -Rp {p.discount.toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs mt-2 pt-2 border-t border-gray-100">
+                  <span className="text-gray-500">
+                    Exp: {new Date(p.exp).toLocaleDateString("id-ID")}
+                  </span>
+                  <span
+                    className={`font-medium ${
+                      p.qty <= 0 ? "text-red-500" : "text-gray-700"
+                    }`}
+                  >
+                    {p.qty <= 0 ? "Habis" : `Stok: ${p.qty}`}
+                  </span>
+                </div>
+              </button>
+            ))}
+
+            {stocks.length === 0 && (
+              <div className="p-6 text-center text-gray-500 text-sm">
+                Tidak ada produk.
+              </div>
+            )}
           </div>
 
           {/* PAGINATION — ellipsis style */}
@@ -491,11 +608,19 @@ export default function PosPage() {
         </section>
 
         {/* Cart (kanan) */}
-        <aside className="bg-white rounded-md shadow p-4 w-full lg:w-1/3 flex flex-col">
-          <h3 className="font-semibold mb-3">Keranjang</h3>
+        <aside className="bg-white rounded-md shadow p-3 md:p-4 w-full lg:w-1/3 flex flex-col">
+          <h3 className="font-semibold mb-3">
+            Keranjang{" "}
+            {cartItems.length > 0 && (
+              <span className="text-sm text-gray-500 font-normal">
+                ({cartItems.length} item)
+              </span>
+            )}
+          </h3>
 
           <div className="flex-1 overflow-auto">
-            <table className="w-full text-sm">
+            {/* Desktop table */}
+            <table className="hidden md:table w-full text-sm">
               <thead>
                 <tr className="text-left">
                   <th className="p-2">Nama</th>
@@ -569,6 +694,72 @@ export default function PosPage() {
                 )}
               </tbody>
             </table>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-2">
+              {cartItems.map((c) => (
+                <div
+                  key={c.id}
+                  className="border rounded-lg p-3 bg-white"
+                >
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate">{c.name}</div>
+                      {c.discount > 0 && (
+                        <div className="text-xs text-green-600">
+                          Diskon: Rp {(c.discount * c.qty).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => removeFromCart(c.id)}
+                      className="text-xs text-red-600 font-medium shrink-0"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5 text-white">
+                      <button
+                        onClick={() => updateCartQuantity(c.id, c.qty - 1)}
+                        className="w-8 h-8 bg-red-500 rounded font-bold"
+                      >
+                        -
+                      </button>
+                      <input
+                        value={c.qty}
+                        onChange={(e) => {
+                          const val = Number(e.target.value) || 0;
+                          updateCartQuantity(c.id, val);
+                        }}
+                        className="w-12 text-center border text-black rounded h-8"
+                        type="number"
+                        min={0}
+                        max={c.max_qty}
+                      />
+                      <button
+                        onClick={() => updateCartQuantity(c.id, c.qty + 1)}
+                        className="w-8 h-8 bg-blue-500 rounded font-bold"
+                      >
+                        +
+                      </button>
+                      <span className="text-xs text-gray-400 ml-1">
+                        / {c.max_qty}
+                      </span>
+                    </div>
+                    <div className="text-sm font-semibold">
+                      Rp {(Number(c.price - c.discount) * c.qty).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {cartItems.length === 0 && (
+                <div className="p-6 text-center text-gray-500 text-sm">
+                  Klik produk di atas untuk menambah.
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Summary & Actions */}
@@ -578,13 +769,113 @@ export default function PosPage() {
               <div>{totals.totalItems}</div>
             </div>
             <div className="flex justify-between text-sm text-gray-600">
+              <div>Subtotal</div>
+              <div>Rp {grossSubtotal.toLocaleString()}</div>
+            </div>
+            {productDiscountTotal > 0 && (
+              <div className="flex justify-between text-sm text-orange-600 font-medium">
+                <div>{useDiscount10 ? "Diskon 10% produk" : "Diskon produk"}</div>
+                <div>- Rp {productDiscountTotal.toLocaleString()}</div>
+              </div>
+            )}
+            <div className="flex justify-between text-sm text-gray-600">
               <div>Discount member</div>
               <div>Rp {discountMember.toLocaleString()}</div>
             </div>
-            <div className="flex justify-between text-lg font-semibold mt-2">
+
+            {/* Diskon 10% Card - visible if admin enabled */}
+            {discount10Enabled && cartItems.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setUseDiscount10((v) => !v)}
+                className={`group w-full mt-3 relative overflow-hidden rounded-xl p-0.5 transition-all duration-300 active:scale-[0.98] ${
+                  useDiscount10
+                    ? "bg-linear-to-r from-emerald-400 via-green-500 to-emerald-600 shadow-lg shadow-emerald-200"
+                    : "bg-linear-to-r from-amber-400 via-orange-500 to-pink-500 shadow-md hover:shadow-lg hover:shadow-orange-200"
+                }`}
+              >
+                <div
+                  className={`flex items-center justify-between rounded-[10px] px-4 py-3 transition ${
+                    useDiscount10
+                      ? "bg-linear-to-r from-emerald-500 to-green-600 text-white"
+                      : "bg-white group-hover:bg-linear-to-r group-hover:from-amber-50 group-hover:to-orange-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                        useDiscount10
+                          ? "bg-white/25"
+                          : "bg-linear-to-br from-amber-400 to-orange-500 text-white"
+                      }`}
+                    >
+                      {useDiscount10 ? (
+                        <Check className="w-5 h-5" strokeWidth={3} />
+                      ) : (
+                        <Percent className="w-5 h-5" strokeWidth={2.5} />
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <div
+                        className={`text-sm font-bold ${
+                          useDiscount10 ? "text-white" : "text-gray-800"
+                        }`}
+                      >
+                        {useDiscount10 ? "Diskon 10% Aktif" : "Promo Diskon 10%"}
+                      </div>
+                      <div
+                        className={`text-[11px] ${
+                          useDiscount10 ? "text-emerald-50" : "text-gray-500"
+                        }`}
+                      >
+                        {useDiscount10
+                          ? "Klik untuk membatalkan"
+                          : "Hemat 10% dari semua produk"}
+                      </div>
+                    </div>
+                  </div>
+                  <Sparkles
+                    className={`w-5 h-5 ${
+                      useDiscount10
+                        ? "text-yellow-200"
+                        : "text-orange-400 group-hover:animate-pulse"
+                    }`}
+                  />
+                </div>
+              </button>
+            )}
+
+            <div className="flex justify-between text-xl font-bold mt-3 pt-3 border-t">
               <div>Total</div>
-              <div>Rp {totals.totalPrice.toLocaleString()}</div>
+              <div className={useDiscount10 ? "text-emerald-600" : ""}>
+                Rp {totals.totalPrice.toLocaleString()}
+              </div>
             </div>
+
+            {/* Admin-only toggle (compact) */}
+            {role === "Admin" && (
+              <button
+                type="button"
+                onClick={toggleDiscount10Feature}
+                disabled={togglingDiscount10}
+                className="mt-2 w-full flex items-center justify-center gap-1.5 text-[14px] text-gray-400 hover:text-gray-600 transition py-1 disabled:opacity-50"
+                title="Kelola fitur diskon 10%"
+              >
+                <Settings2 className="w-3 h-3" />
+                Fitur Diskon 10%:
+                <span
+                  className={`font-semibold ${
+                    discount10Enabled ? "text-blue-600" : "text-red-500"
+                  }`}
+                >
+                  {togglingDiscount10
+                    ? "..."
+                    : discount10Enabled
+                    ? "AKTIF"
+                    : "NONAKTIF"}
+                </span>
+              </button>
+            )}
             {/* CUSTOMER SELECT */}
             <div ref={customerWrapperRef} className="mb-4 pt-4 relative">
               <label className="text-sm text-gray-600 mb-1 block">
@@ -684,6 +975,11 @@ export default function PosPage() {
           {discountMember === 0 && selectedCustomer && cartItems.some(i => i.discount > 0) && (
             <div className="text-xs text-orange-500 mt-1">
               Diskon member tidak berlaku karena ada produk promo
+            </div>
+          )}
+          {useDiscount10 && selectedCustomer && (
+            <div className="text-xs text-orange-500 mt-1">
+              Diskon member tidak berlaku karena menggunakan diskon 10%
             </div>
           )}
         </aside>

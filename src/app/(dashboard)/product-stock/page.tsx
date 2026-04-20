@@ -87,11 +87,63 @@ export default function ProductStock() {
   };
 
 
+  const renderActionMenu = (item: TypeStock) => (
+    <>
+      {role === "Admin" && (
+        <>
+          <button
+            onClick={() => {
+              setSelectedStock(item);
+              setOpenExpired(true);
+              setOpenActionId(null);
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+          >
+            ⛔ Tandai Expired
+          </button>
+
+          <button
+            onClick={() => {
+              setSelectedStock(item);
+              setOpenAddStock(true);
+              setOpenActionId(null);
+            }}
+            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+          >
+            ➕ Tambah Stock
+          </button>
+
+          <button
+            onClick={() => {
+              setSelectedStock(item);
+              setOpenMinusStock(true);
+              setOpenActionId(null);
+            }}
+            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+          >
+            ➖ Kurangi Stock
+          </button>
+        </>
+      )}
+
+      <button
+        onClick={() => {
+          setSelectedStock(item);
+          setOpenSupplierReturn(true);
+          setOpenActionId(null);
+        }}
+        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
+      >
+        🔁 Retur Supplier
+      </button>
+    </>
+  );
+
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-3 md:p-6 space-y-4">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-semibold text-gray-800">
+        <h1 className="text-xl md:text-3xl font-semibold text-gray-800">
           Manajemen Stok
         </h1>
       </div>
@@ -113,8 +165,8 @@ export default function ProductStock() {
         </div>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      {/* DESKTOP TABLE */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-sm">
           <thead className="bg-primary text-white">
             <tr>
@@ -165,7 +217,7 @@ export default function ProductStock() {
                       const rect = e.currentTarget.getBoundingClientRect();
                       setActionPosition({
                         top: rect.bottom + 6,
-                        left: rect.right - 140, // 140 = width dropdown
+                        left: rect.right - 140,
                       });
 
                       toggleAction(item.id);
@@ -184,70 +236,79 @@ export default function ProductStock() {
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {/* TOMBOL KHUSUS ADMIN */}
-                        {role === "Admin" && (
-                          <>
-                            <button
-                              onClick={() => {
-                                setSelectedStock(item);
-                                setOpenExpired(true);
-                                setOpenActionId(null);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                            >
-                              ⛔ Tandai Expired
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setSelectedStock(item);
-                                setOpenAddStock(true);
-                                setOpenActionId(null);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                              ➕ Tambah Stock
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setSelectedStock(item);
-                                setOpenMinusStock(true);
-                                setOpenActionId(null);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                              ➖ Kurangi Stock
-                            </button>
-                          </>
-                        )}
-
-                        {/* TOMBOL UNTUK SEMUA ROLE */}
-                        <button
-                          onClick={() => {
-                            setSelectedStock(item);
-                            setOpenSupplierReturn(true);
-                            setOpenActionId(null);
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                        >
-                          🔁 Retur Supplier
-                        </button>
+                        {renderActionMenu(item)}
                       </div>,
                       document.body
                     )}
-
                 </td>
-
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
+      {/* MOBILE CARDS */}
+      <div className="md:hidden space-y-2">
+        {loading && (
+          <div className="p-6 text-center text-gray-500 text-sm">Loading...</div>
+        )}
+
+        {!loading && stock.length === 0 && (
+          <div className="p-6 text-center text-gray-500 text-sm">
+            Data tidak ditemukan
+          </div>
+        )}
+
+        {stock.map((item) => (
+          <div key={item.id} className="border rounded-lg bg-white overflow-hidden">
+            <div className="p-3">
+              <div className="flex justify-between items-start gap-2 mb-2">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm truncate">{item.name}</div>
+                  <div className="text-xs text-gray-500 font-mono mt-0.5 truncate">
+                    {item.sku}
+                    {item.size && (
+                      <span className="ml-2 text-gray-400">{item.size}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-semibold text-sm">
+                    Rp {item.price?.toLocaleString()}
+                  </div>
+                  <div
+                    className={`text-xs font-medium ${
+                      item.qty <= 0 ? "text-red-500" : "text-gray-700"
+                    }`}
+                  >
+                    Stok: {item.qty}
+                  </div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 pt-2 border-t">
+                Exp: {new Date(item.exp).toLocaleDateString("id-ID")}
+              </div>
+            </div>
+
+            <div className="border-t bg-gray-50">
+              <button
+                type="button"
+                onClick={() => toggleAction(item.id)}
+                className="w-full py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 transition"
+              >
+                {openActionId === item.id ? "Tutup Aksi ▴" : "Aksi ▾"}
+              </button>
+              {openActionId === item.id && (
+                <div className="border-t bg-white">{renderActionMenu(item)}</div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* PAGINATION */}
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex justify-end items-center gap-1 mt-3">
+        <div className="flex justify-center md:justify-end items-center gap-1 mt-3 flex-wrap">
             {/* First */}
             <button
               disabled={page === 1}

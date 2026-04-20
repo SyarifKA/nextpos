@@ -36,9 +36,9 @@ export default function CustomerPage() {
   }, [page, search]);
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-3 md:p-6 space-y-4">
       {/* HEADER */}
-      <h1 className="text-3xl font-semibold text-gray-800">
+      <h1 className="text-xl md:text-3xl font-semibold text-gray-800">
         Manajemen Pelanggan
       </h1>
 
@@ -63,8 +63,8 @@ export default function CustomerPage() {
         </button>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto rounded-lg border bg-white">
+      {/* DESKTOP TABLE */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border bg-white">
         <table className="min-w-full text-sm">
           <thead className="bg-primary text-white">
             <tr>
@@ -115,13 +115,53 @@ export default function CustomerPage() {
         </table>
       </div>
 
+      {/* MOBILE CARDS */}
+      <div className="md:hidden space-y-2">
+        {loading && (
+          <div className="p-6 text-center text-gray-500 text-sm">Loading...</div>
+        )}
+
+        {!loading && customers.length === 0 && (
+          <div className="p-6 text-center text-gray-500 text-sm">
+            Data tidak ditemukan
+          </div>
+        )}
+
+        {customers.map((item) => (
+          <Link
+            key={item.id}
+            href={`/customer/${item.id}`}
+            className="block border rounded-lg p-3 bg-white hover:bg-gray-50 active:scale-[0.98] transition"
+          >
+            <div className="flex justify-between items-start gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-sm truncate">{item.name}</div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {item.phone_number || "-"}
+                </div>
+                <div className="text-xs text-gray-400 font-mono mt-0.5 truncate">
+                  {item.id}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-xs text-gray-500">Registrasi</div>
+                <div className="text-xs font-medium">
+                  {new Date(item.created_at).toLocaleDateString("id-ID")}
+                </div>
+                <div className="text-xs text-blue-600 mt-1">Detail →</div>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
       {/* PAGINATION */}
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex justify-end gap-1">
+        <div className="flex justify-center md:justify-end gap-1 flex-wrap">
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="rounded border px-3 py-1 text-sm"
+            className="rounded border px-3 py-1 text-sm disabled:opacity-40"
           >
             «
           </button>
@@ -143,7 +183,7 @@ export default function CustomerPage() {
           <button
             disabled={page === pagination.total_pages}
             onClick={() => setPage(page + 1)}
-            className="rounded border px-3 py-1 text-sm"
+            className="rounded border px-3 py-1 text-sm disabled:opacity-40"
           >
             »
           </button>

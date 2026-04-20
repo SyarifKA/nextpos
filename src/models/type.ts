@@ -82,6 +82,7 @@ export interface TypeTransactionDetail{
 
 export interface PayloadTransaction{
   customer_id: string;
+  use_discount_10?: boolean;
   transaction: CheckoutProduct[];
 }
 export interface CheckoutProduct {

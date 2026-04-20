@@ -58,10 +58,10 @@ export default function StockExpired() {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-3 md:p-6 space-y-4">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-semibold text-gray-800">
+        <h1 className="text-xl md:text-3xl font-semibold text-gray-800">
           Stok Expired
         </h1>
       </div>
@@ -83,8 +83,8 @@ export default function StockExpired() {
         </div>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      {/* DESKTOP TABLE */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-sm">
           <thead className="bg-primary text-white">
             <tr>
@@ -136,9 +136,56 @@ export default function StockExpired() {
         </table>
       </div>
 
+      {/* MOBILE CARDS */}
+      <div className="md:hidden space-y-2">
+        {loading && (
+          <div className="p-6 text-center text-gray-500 text-sm">Loading...</div>
+        )}
+
+        {!loading && stocks.length === 0 && (
+          <div className="p-6 text-center text-gray-500 text-sm">
+            Data tidak ditemukan
+          </div>
+        )}
+
+        {stocks.map((item) => (
+          <div key={item.id} className="border border-orange-200 bg-orange-50/30 rounded-lg p-3">
+            <div className="flex justify-between items-start gap-2 mb-2">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-sm truncate">{item.name}</div>
+                <div className="text-xs text-gray-500 font-mono mt-0.5 truncate">
+                  {item.sku}
+                  {item.size && (
+                    <span className="ml-2 text-gray-400">{item.size}</span>
+                  )}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="font-semibold text-sm">
+                  Rp {item.price?.toLocaleString()}
+                </div>
+                {item.discount > 0 && (
+                  <div className="text-xs text-green-600">
+                    -Rp {item.discount.toLocaleString()}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-between text-xs pt-2 border-t border-orange-200">
+              <span className="text-gray-500">
+                Qty: <strong className="text-gray-800">{item.qty}</strong>
+              </span>
+              <span className="text-orange-700 font-medium">
+                Exp: {new Date(item.exp).toLocaleDateString("id-ID")}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* PAGINATION */}
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex justify-end items-center gap-1 mt-3">
+        <div className="flex justify-center md:justify-end items-center gap-1 mt-3 flex-wrap">
             {/* First */}
             <button
               disabled={page === 1}

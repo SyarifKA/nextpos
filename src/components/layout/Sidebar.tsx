@@ -11,7 +11,8 @@ import {
   Power,
   Home,
   Warehouse,
-  BanknoteArrowDown
+  BanknoteArrowDown,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
@@ -103,7 +104,12 @@ const menu: MenuSection[] = [
     },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [openExit, setOpenExit] = useState(false);
@@ -113,24 +119,36 @@ export default function Sidebar() {
     setOpen((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
+  const handleLinkClick = () => {
+    // Close sidebar on mobile — defer to next tick so Next.js navigation completes first
+    if (onClose && typeof window !== "undefined" && window.innerWidth < 1024) {
+      setTimeout(() => onClose(), 0);
+    }
+  };
+
   return (
-    <aside className="w-[320px] h-screen fixed flex flex-col bg-white border-r border-gray01 py-8 gap-8 text-black overflow-y-auto hide-scrollbar z-10">
-      {/* Logo */}
-      <div className="flex flex-row justify-between items-center px-5 pl-8">
-        {/* <Image
-          src="/assets/logo-supercontact.png"
-          alt="Supercontact Logo"
-          width={200}
-          height={200}
-        /> */}
-        {/* <span className="text-3xl text-primary font-semibold text-center">NextPOS</span> */}
+    <aside
+      className={cn(
+        "w-[85vw] max-w-[320px] lg:w-[320px] h-screen fixed flex flex-col bg-white border-r border-gray01 py-6 lg:py-8 gap-6 lg:gap-8 text-black overflow-y-auto hide-scrollbar z-30 transition-transform duration-300",
+        isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}
+    >
+      {/* Logo + Close (mobile) */}
+      <div className="flex flex-row justify-between items-center px-5 lg:pl-8">
         <span className="text-2xl text-primary font-bold text-center">
           <h2 className="flex items-start justify-center gap-2 mt-2 text-center">
             <span className="text-blue-600">Safa</span>
             <span className="text-green-600">Bodycare!</span>
           </h2>
         </span>
-        {/* <Menu className="w-6 stroke-black stroke-[1.5]" /> */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+          aria-label="Close menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       <nav className="flex flex-1 flex-col gap-5">
@@ -151,6 +169,7 @@ export default function Sidebar() {
                   <Link
                     key={childKey}
                     href={child.path}
+                    onClick={handleLinkClick}
                     className={cn(
                       "flex items-center text-black mx-5 gap-3 p-3 text-[16px] rounded-lg font-semibold transition hover:text-white hover:bg-primary",
                       pathname === child.path && "bg-primary text-white"
@@ -190,6 +209,7 @@ export default function Sidebar() {
                           <Link
                             key={subKey}
                             href={sub.path}
+                            onClick={handleLinkClick}
                             className={cn(
                               "flex p-3 pl-12 text-[16px] rounded-lg text-black transition hover:text-primary",
                               pathname === sub.path &&

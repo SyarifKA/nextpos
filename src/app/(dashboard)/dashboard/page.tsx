@@ -32,9 +32,9 @@ function SummaryCard({
   accent: string
 }) {
   return (
-    <div className={`rounded-lg p-4 shadow ${accent}`}>
-      <p className="text-sm opacity-70">{title}</p>
-      <p className="text-2xl font-bold">{value}</p>
+    <div className={`rounded-lg p-3 md:p-4 shadow ${accent}`}>
+      <p className="text-xs md:text-sm opacity-70">{title}</p>
+      <p className="text-base md:text-2xl font-bold break-all">{value}</p>
     </div>
   )
 }
@@ -164,18 +164,18 @@ export default function DashboardPOS() {
   };
 
   return (
-    <div className="flex w-full flex-col p-4 md:p-6 space-y-6">
+    <div className="flex w-full flex-col p-3 md:p-6 space-y-4 md:space-y-6">
       {/* ================= SUMMARY ================= */}
-      <div className="flex flex-col gap-2">
-        <div className="text-semibold text-2xl">Halo! Selamat datang</div>
-        <div className="text-bold text-3xl">{username}</div>
+      <div className="flex flex-col gap-1">
+        <div className="text-lg md:text-2xl">Halo! Selamat datang</div>
+        <div className="text-xl md:text-3xl font-bold truncate">{username}</div>
       </div>
 
       {/* Filter Controls */}
-      <div className="bg-white p-5 rounded-xl shadow-md border border-gray-100">
-        <div className="flex flex-wrap items-end gap-4">
+      <div className="bg-white p-3 md:p-5 rounded-xl shadow-md border border-gray-100">
+        <div className="flex flex-col md:flex-row md:flex-wrap md:items-end gap-3 md:gap-4">
           {/* Filter Dropdown */}
-          <div className="flex flex-col gap-1.5 min-w-48">
+          <div className="flex flex-col gap-1.5 w-full md:min-w-48 md:w-auto">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Periode</label>
             <select
               className="select select-bordered select-sm bg-linear-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl text-blue-700 font-medium focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-200"
@@ -198,51 +198,53 @@ export default function DashboardPOS() {
           </div>
 
           {/* Custom Date Range - Always show inputs */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1.5 w-full md:w-auto">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Custom Tanggal</label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <input
                 type="date"
-                className="input input-sm bg-linear-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl text-green-700 font-medium focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all duration-200 px-4 py-2 min-w-40"
+                className="input input-sm flex-1 md:flex-none bg-linear-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl text-green-700 font-medium focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all duration-200 px-3 md:px-4 py-2 min-w-0 md:min-w-40"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
-              <span className="text-gray-400 font-medium">-</span>
+              <span className="text-gray-400 font-medium hidden md:inline">-</span>
               <input
                 type="date"
-                className="input input-sm bg-linear-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl text-green-700 font-medium focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all duration-200 px-4 py-2 min-w-40"
+                className="input input-sm flex-1 md:flex-none bg-linear-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl text-green-700 font-medium focus:border-green-400 focus:ring-2 focus:ring-green-100 transition-all duration-200 px-3 md:px-4 py-2 min-w-0 md:min-w-40"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
               />
-              {startDate && endDate && (
+              <div className="flex gap-2 w-full md:w-auto">
+                {startDate && endDate && (
+                  <button
+                    onClick={() => {
+                      setStartDate("");
+                      setEndDate("");
+                      setFilter("today");
+                    }}
+                    className="btn btn-sm flex-1 md:flex-none bg-linear-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 rounded-lg h-10 px-4"
+                  >
+                    Reset
+                  </button>
+                )}
                 <button
                   onClick={() => {
-                    setStartDate("");
-                    setEndDate("");
-                    setFilter("today");
+                    if (startDate && endDate) {
+                      fetchDataDashboard();
+                    }
                   }}
-                  className="btn btn-sm bg-linear-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 rounded-lg h-10 px-4"
+                  disabled={!startDate || !endDate}
+                  className="btn btn-sm flex-1 md:flex-none bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 rounded-lg h-10 px-4 disabled:from-gray-300 disabled:to-gray-400"
                 >
-                  Reset
+                  Apply
                 </button>
-              )}
-              <button
-                onClick={() => {
-                  if (startDate && endDate) {
-                    fetchDataDashboard();
-                  }
-                }}
-                disabled={!startDate || !endDate}
-                className="btn btn-sm bg-linear-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200 rounded-lg h-10 px-4 disabled:from-gray-300 disabled:to-gray-400"
-              >
-                Apply
-              </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
         <SummaryCard
           title="Total Transaksi"
           value={`${dataDashboard?.total_transaction.toLocaleString()}`}
@@ -277,13 +279,13 @@ export default function DashboardPOS() {
       </div>
 
       {/* ================= CHART ================= */}
-      <div className="card bg-base-100 shadow px-8">
-        <div className="card-body space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Grafik Transaksi</h2>
+      <div className="card bg-base-100 shadow px-2 md:px-8">
+        <div className="card-body p-3 md:p-6 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-semibold text-sm md:text-base">Grafik Transaksi</h2>
 
             <select
-              className="select select-bordered select-sm w-35"
+              className="select select-bordered select-sm w-28 md:w-35 text-xs md:text-sm"
               value={chartType}
               onChange={(e) =>
                 setChartType(e.target.value as "daily" | "monthly" | "yearly")
@@ -295,9 +297,9 @@ export default function DashboardPOS() {
             </select>
           </div>
 
-          <div className="h-65">
+          <div className="h-56 md:h-65">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}  margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
+              <LineChart data={chartData}  margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
@@ -305,9 +307,8 @@ export default function DashboardPOS() {
                   </linearGradient>
                 </defs>
 
-                {/* <XAxis dataKey="name" padding={{ left: 20, right: 20 }}/> */}
-                <XAxis dataKey="name"/>
-                <YAxis />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} width={45} />
                 <Tooltip />
                 <stop offset="5%" stopColor={chartColor} stopOpacity={0.8} />
                 <stop offset="95%" stopColor={chartColor} stopOpacity={0.1} />
@@ -329,15 +330,15 @@ export default function DashboardPOS() {
       </div>
 
       {/* ================= SALES RANKING ================= */}
-      <div className="card bg-base-100 shadow px-8">
-        <div className="card-body space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-500" />
+      <div className="card bg-base-100 shadow px-2 md:px-8">
+        <div className="card-body p-3 md:p-6 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-semibold flex items-center gap-2 text-sm md:text-base">
+              <Trophy className="w-4 h-4 md:w-5 md:h-5 text-yellow-500" />
               Peringkat Penjualan
             </h2>
             <select
-              className="select select-bordered select-sm w-35"
+              className="select select-bordered select-sm w-28 md:w-35 text-xs md:text-sm"
               value={rankingPeriod}
               onChange={(e) =>
                 setRankingPeriod(e.target.value as "daily" | "weekly" | "monthly" | "yearly")
@@ -352,23 +353,24 @@ export default function DashboardPOS() {
 
           {salesRanking.length > 0 ? (
             <>
-              <div className="h-65">
+              <div className="h-56 md:h-65">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={salesRanking}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
                     layout="vertical"
                   >
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                     <XAxis
                       type="number"
-                      tickFormatter={(v) => `Rp ${(v / 1000).toFixed(0)}k`}
+                      tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                      tick={{ fontSize: 10 }}
                     />
                     <YAxis
                       type="category"
                       dataKey="user_name"
-                      width={100}
-                      tick={{ fontSize: 13 }}
+                      width={70}
+                      tick={{ fontSize: 11 }}
                     />
                     <Tooltip
                       formatter={(value) => [
@@ -376,7 +378,7 @@ export default function DashboardPOS() {
                         "Total Penjualan",
                       ]}
                     />
-                    <Bar dataKey="total_amount" radius={[0, 6, 6, 0]} barSize={32}>
+                    <Bar dataKey="total_amount" radius={[0, 6, 6, 0]} barSize={24}>
                       {salesRanking.map((_, index) => {
                         const colors = ["#f59e0b", "#6b7280", "#b45309", "#3b82f6", "#10b981", "#8b5cf6"];
                         return <Cell key={index} fill={colors[index % colors.length]} />;
@@ -386,8 +388,8 @@ export default function DashboardPOS() {
                 </ResponsiveContainer>
               </div>
 
-              {/* Ranking table */}
-              <div className="overflow-x-auto">
+              {/* Ranking table - desktop */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left">
@@ -421,9 +423,46 @@ export default function DashboardPOS() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Ranking list - mobile */}
+              <div className="md:hidden space-y-2">
+                {salesRanking.map((item, index) => (
+                  <div
+                    key={item.user_id}
+                    className="flex items-center justify-between border rounded-lg p-3 bg-white"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-8 text-center shrink-0">
+                        {index === 0 ? (
+                          <span className="text-lg">🥇</span>
+                        ) : index === 1 ? (
+                          <span className="text-lg">🥈</span>
+                        ) : index === 2 ? (
+                          <span className="text-lg">🥉</span>
+                        ) : (
+                          <span className="text-gray-500 font-medium text-sm">
+                            {index + 1}
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm truncate">
+                          {item.user_name}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {item.total_transaction} transaksi
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right font-semibold text-green-600 text-sm shrink-0">
+                      Rp {item.total_amount.toLocaleString("id-ID")}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </>
           ) : (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-gray-400 text-sm">
               Belum ada data penjualan untuk periode ini.
             </div>
           )}
@@ -431,115 +470,202 @@ export default function DashboardPOS() {
       </div>
 
       {/* ================= TRANSACTIONS ================= */}
-        <div className="card bg-base-100 shadow">
-            <div className="card-body p-4">
-                <h2 className="font-semibold mb-4">Transaksi Terbaru</h2>
-                <div className="overflow-x-auto">
-                <table className="flex flex-col table-zebra table-sm w-full">
-                    <thead className="flex w-full bg-base-200 border bg-primary text-white">
-                        <tr className="flex w-full justify-between border px-8 text-center py-2 font-semibold">
-                            <td className="w-1/5">ID</td>
-                            <td className="w-1/5">Pelanggan</td>
-                            <td className="w-1/5">Total</td>
-                            <td className="w-1/5">Tanggal</td>
-                            <td className="w-1/5">Aksi</td>
-                        </tr>
-                    </thead>
-                    <tbody className="flex flex-col w-full bg-base-200 border">
-                      {transactions.map((trx) => (
-                        <React.Fragment key={trx.id}>
-                          {/* ===== MAIN ROW ===== */}
-                          <tr className="hover w-full flex justify-between border py-2 px-8 items-start">
-                            <td className="w-1/5 text-center">{trx.id}</td>
-                            <td className="w-1/5 text-center">{trx.customer_name || "-"}</td>
-                            <td className="w-1/5 text-center">
-                              Rp {trx.grand_total.toLocaleString("id-ID")}
-                            </td>
-                            <td className="w-1/5 text-center">
-                              {new Date(trx.created_at).toLocaleDateString("id-ID")}
-                            </td>
-                            <td className="w-1/5 text-center">
-                              <button
-                                onClick={() => handleToggleDetail(trx.id)}
-                                className="bg-green-400 hover:bg-green-500 px-4 py-2 rounded-md"
-                              >
-                                Detail
-                              </button>
-                            </td>
-                          </tr>
-                          {/* ===== DETAIL ROW ===== */}
-                          <AnimatePresence>
-                            {expandedTrxId === trx.id && (
-                              <motion.tr
-                                key={trx.id} // wajib key
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.3 }}
-                                className="flex w-full bg-white px-8 py-4 border"
-                              >
-                                <td colSpan={5} className="w-full">
-                                  <div id={`trx-print-${trx.id}`} className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                      <div>
-                                        <p className="font-semibold">Detail Transaksi</p>
-                                        <p className="text-sm">Kasir: {trx.cashier}</p>
-                                      </div>
-                                      <button
-                                        onClick={() => handlePrintClick(trx)}
-                                        className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
-                                      >
-                                        <Printer size={16} />
-                                        Print
-                                      </button>
-                                    </div>
+      <div className="card bg-base-100 shadow">
+        <div className="card-body p-3 md:p-4">
+          <h2 className="font-semibold mb-4 text-sm md:text-base">Transaksi Terbaru</h2>
 
-                                    <table className="w-full text-sm">
-                                      <thead>
-                                        <tr className="border-b">
-                                          <th className="text-left">Produk</th>
-                                          <th className="text-center">Qty</th>
-                                          <th className="text-right">Harga</th>
-                                          <th className="text-right">Discount produk</th>
-                                          <th className="text-right">Total</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {trx.transaction_detail.map((item) => (
-                                          <tr key={item.id}>
-                                            <td>{item.product_name || "-"}</td>
-                                            <td className="text-center">{item.qty}</td>
-                                            <td className="text-right">
-                                              Rp {item.price.toLocaleString("id-ID")}
-                                            </td>
-                                            <td className="text-right">
-                                              Rp {item.product_discount.toLocaleString("id-ID")}
-                                            </td>
-                                            <td className="text-right">
-                                              Rp {item.total.toLocaleString("id-ID")}
-                                            </td>
-                                          </tr>
-                                        ))}
-                                      </tbody>
-                                    </table>
-                                    <div className="flex flex-col items-end font-semibold">
-                                      <span className="text-right">
-                                        Discount customer : Rp {trx.customer_discount.toLocaleString("id-ID")}
-                                      </span>
-                                      Grand Total: Rp {trx.grand_total.toLocaleString("id-ID")}
-                                    </div>
-                                  </div>
-                                </td>
-                              </motion.tr>
-                            )}
-                          </AnimatePresence>
-                        </React.Fragment>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="flex flex-col table-zebra table-sm w-full">
+              <thead className="flex w-full bg-base-200 border bg-primary text-white">
+                <tr className="flex w-full justify-between border px-8 text-center py-2 font-semibold">
+                  <td className="w-1/5">ID</td>
+                  <td className="w-1/5">Pelanggan</td>
+                  <td className="w-1/5">Total</td>
+                  <td className="w-1/5">Tanggal</td>
+                  <td className="w-1/5">Aksi</td>
+                </tr>
+              </thead>
+              <tbody className="flex flex-col w-full bg-base-200 border">
+                {transactions.map((trx) => (
+                  <React.Fragment key={trx.id}>
+                    <tr className="hover w-full flex justify-between border py-2 px-8 items-start">
+                      <td className="w-1/5 text-center">{trx.id}</td>
+                      <td className="w-1/5 text-center">{trx.customer_name || "-"}</td>
+                      <td className="w-1/5 text-center">
+                        Rp {trx.grand_total.toLocaleString("id-ID")}
+                      </td>
+                      <td className="w-1/5 text-center">
+                        {new Date(trx.created_at).toLocaleDateString("id-ID")}
+                      </td>
+                      <td className="w-1/5 text-center">
+                        <button
+                          onClick={() => handleToggleDetail(trx.id)}
+                          className="bg-green-400 hover:bg-green-500 px-4 py-2 rounded-md"
+                        >
+                          Detail
+                        </button>
+                      </td>
+                    </tr>
+                    <AnimatePresence>
+                      {expandedTrxId === trx.id && (
+                        <motion.tr
+                          key={trx.id}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.3 }}
+                          className="flex w-full bg-white px-8 py-4 border"
+                        >
+                          <td colSpan={5} className="w-full">
+                            <div id={`trx-print-${trx.id}`} className="space-y-3">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <p className="font-semibold">Detail Transaksi</p>
+                                  <p className="text-sm">Kasir: {trx.cashier}</p>
+                                </div>
+                                <button
+                                  onClick={() => handlePrintClick(trx)}
+                                  className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md"
+                                >
+                                  <Printer size={16} />
+                                  Print
+                                </button>
+                              </div>
+
+                              <table className="w-full text-sm">
+                                <thead>
+                                  <tr className="border-b">
+                                    <th className="text-left">Produk</th>
+                                    <th className="text-center">Qty</th>
+                                    <th className="text-right">Harga</th>
+                                    <th className="text-right">Discount produk</th>
+                                    <th className="text-right">Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {trx.transaction_detail.map((item) => (
+                                    <tr key={item.id}>
+                                      <td>{item.product_name || "-"}</td>
+                                      <td className="text-center">{item.qty}</td>
+                                      <td className="text-right">
+                                        Rp {item.price.toLocaleString("id-ID")}
+                                      </td>
+                                      <td className="text-right">
+                                        Rp {item.product_discount.toLocaleString("id-ID")}
+                                      </td>
+                                      <td className="text-right">
+                                        Rp {item.total.toLocaleString("id-ID")}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                              <div className="flex flex-col items-end font-semibold">
+                                <span className="text-right">
+                                  Discount customer : Rp {trx.customer_discount.toLocaleString("id-ID")}
+                                </span>
+                                Grand Total: Rp {trx.grand_total.toLocaleString("id-ID")}
+                              </div>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      )}
+                    </AnimatePresence>
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-2">
+            {transactions.map((trx) => (
+              <div key={trx.id} className="border rounded-lg bg-white overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => handleToggleDetail(trx.id)}
+                  className="w-full p-3 text-left hover:bg-gray-50 transition"
+                >
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-sm truncate">
+                        {trx.customer_name || "Walk-in"}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        {new Date(trx.created_at).toLocaleDateString("id-ID")} &bull;{" "}
+                        {trx.cashier}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="font-semibold text-sm">
+                        Rp {trx.grand_total.toLocaleString("id-ID")}
+                      </div>
+                      <div className="text-xs text-blue-600">
+                        {expandedTrxId === trx.id ? "Tutup ▲" : "Detail ▼"}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+
+                {expandedTrxId === trx.id && (
+                  <div className="border-t bg-gray-50 p-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-semibold">Detail</span>
+                      <button
+                        onClick={() => handlePrintClick(trx)}
+                        className="flex items-center gap-1 bg-blue-500 text-white px-2 py-1 rounded text-xs"
+                      >
+                        <Printer size={12} />
+                        Print
+                      </button>
+                    </div>
+                    <div className="space-y-1.5">
+                      {trx.transaction_detail.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex justify-between text-xs border-b pb-1.5 last:border-b-0"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium truncate">{item.product_name || "-"}</div>
+                            <div className="text-gray-500">
+                              {item.qty} × Rp {item.price.toLocaleString("id-ID")}
+                              {item.product_discount > 0 && (
+                                <span className="text-orange-600">
+                                  {" "}(−{item.product_discount.toLocaleString("id-ID")})
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="font-medium shrink-0 ml-2">
+                            Rp {item.total.toLocaleString("id-ID")}
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                </table>
-                </div>
-            </div>
+                    </div>
+                    <div className="mt-2 pt-2 border-t space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Discount customer</span>
+                        <span>Rp {trx.customer_discount.toLocaleString("id-ID")}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold text-sm">
+                        <span>Grand Total</span>
+                        <span>Rp {trx.grand_total.toLocaleString("id-ID")}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {transactions.length === 0 && (
+              <div className="p-6 text-center text-gray-500 text-sm">
+                Belum ada transaksi.
+              </div>
+            )}
+          </div>
         </div>
+      </div>
         {selectedTrx && (
         <PrintConfirmModal
           open={openPrint}

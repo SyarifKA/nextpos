@@ -41,10 +41,10 @@ export default function Supplier() {
   }, [search, page]);
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-3 md:p-6 space-y-4">
       {/* HEADER */}
       <div>
-        <h1 className="text-3xl font-semibold text-gray-800">
+        <h1 className="text-xl md:text-3xl font-semibold text-gray-800">
           Manajemen Supplier
         </h1>
       </div>
@@ -72,8 +72,8 @@ export default function Supplier() {
         </button>
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      {/* DESKTOP TABLE */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-sm">
           <thead className="bg-primary text-white">
             <tr>
@@ -110,24 +110,6 @@ export default function Supplier() {
                 <td className="px-4 py-3">{item.phone_company}</td>
                 <td className="px-4 py-3">{item.sales_name}</td>
                 <td className="px-4 py-3">{item.phone_sales}</td>
-                {/* <td className="px-4 py-3 text-center space-x-2">
-                  <button
-                    onClick={() => {
-                        setSelectedSupplier(item);
-                        setOpenEdit(true);
-                    }}
-                    className="rounded-md bg-yellow-500 px-3 py-1 text-xs text-white">
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                        setSelectedSupplier(item);
-                        setOpenDelete(true);
-                    }}
-                    className="rounded-md bg-red-500 px-3 py-1 text-xs text-white">
-                    Delete
-                  </button>
-                </td> */}
                 <td className="px-4 py-3 text-center">
                   <Link
                     href={`/supplier/${item.id}`}
@@ -142,13 +124,52 @@ export default function Supplier() {
         </table>
       </div>
 
+      {/* MOBILE CARDS */}
+      <div className="md:hidden space-y-2">
+        {loading && (
+          <div className="p-6 text-center text-gray-500 text-sm">Loading...</div>
+        )}
+
+        {!loading && suppliers.length === 0 && (
+          <div className="p-6 text-center text-gray-500 text-sm">
+            Data tidak ditemukan
+          </div>
+        )}
+
+        {suppliers.map((item) => (
+          <Link
+            key={item.id}
+            href={`/supplier/${item.id}`}
+            className="block border rounded-lg p-3 bg-white hover:bg-gray-50 active:scale-[0.98] transition"
+          >
+            <div className="flex justify-between items-start gap-2 mb-2">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-sm truncate">
+                  {item.company_name}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {item.phone_company || "-"}
+                </div>
+              </div>
+              <div className="text-xs text-blue-600 shrink-0">Detail →</div>
+            </div>
+            <div className="flex justify-between text-xs pt-2 border-t">
+              <span className="text-gray-500">
+                Sales: <strong className="text-gray-800">{item.sales_name || "-"}</strong>
+              </span>
+              <span className="text-gray-500">{item.phone_sales || "-"}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+
       {/* PAGINATION */}
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex justify-end gap-1">
+        <div className="flex justify-center md:justify-end gap-1 flex-wrap">
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="rounded border px-3 py-1 text-sm"
+            className="rounded border px-3 py-1 text-sm disabled:opacity-40"
           >
             «
           </button>
@@ -170,7 +191,7 @@ export default function Supplier() {
           <button
             disabled={page === pagination.total_pages}
             onClick={() => setPage(page + 1)}
-            className="rounded border px-3 py-1 text-sm"
+            className="rounded border px-3 py-1 text-sm disabled:opacity-40"
           >
             »
           </button>

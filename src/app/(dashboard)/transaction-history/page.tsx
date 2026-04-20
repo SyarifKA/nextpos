@@ -54,9 +54,9 @@ export default function HistoryTrxPage() {
     };
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
+    <div className="p-3 md:p-6 space-y-4">
       {/* HEADER */}
-      <h1 className="text-3xl font-semibold text-gray-800">
+      <h1 className="text-xl md:text-3xl font-semibold text-gray-800">
         Riwayat Transaksi
       </h1>
 
@@ -74,8 +74,8 @@ export default function HistoryTrxPage() {
         />
       </div>
 
-      {/* TABLE */}
-      <div className="overflow-x-auto rounded-lg border bg-white">
+      {/* DESKTOP TABLE */}
+      <div className="hidden md:block overflow-x-auto rounded-lg border bg-white">
         <table className="flex flex-col table-zebra table-sm w-full">
             <thead className="flex w-full bg-base-200 border bg-primary text-white">
                 <tr className="flex w-full justify-between border px-8 text-center py-2 font-semibold">
@@ -89,7 +89,6 @@ export default function HistoryTrxPage() {
             <tbody className="flex flex-col w-full bg-base-200 border">
               {transactions.map((trx) => (
                 <React.Fragment key={trx.id}>
-                  {/* ===== MAIN ROW ===== */}
                   <tr className="hover w-full flex justify-between border py-2 px-8 items-start">
                     <td className="w-1/5 text-center">{trx.invoice_id}</td>
                     <td className="w-1/5 text-center">{trx.customer_name || "-"}</td>
@@ -108,11 +107,10 @@ export default function HistoryTrxPage() {
                       </button>
                     </td>
                   </tr>
-                  {/* ===== DETAIL ROW ===== */}
                   <AnimatePresence>
                     {expandedTrxId === trx.id && (
                       <motion.tr
-                        key={trx.id} // wajib key
+                        key={trx.id}
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
@@ -191,13 +189,114 @@ export default function HistoryTrxPage() {
         </table>
       </div>
 
+      {/* MOBILE CARDS */}
+      <div className="md:hidden space-y-2">
+        {transactions.map((trx) => (
+          <div key={trx.id} className="border rounded-lg bg-white overflow-hidden">
+            <button
+              type="button"
+              onClick={() => handleToggleDetail(trx.id)}
+              className="w-full p-3 text-left hover:bg-gray-50 transition"
+            >
+              <div className="flex justify-between items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-sm truncate">
+                    {trx.customer_name || "Walk-in"}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5 truncate">
+                    {trx.invoice_id}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-0.5">
+                    {new Date(trx.created_at).toLocaleDateString("id-ID")} &bull;{" "}
+                    {trx.cashier}
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="font-semibold text-sm">
+                    Rp {trx.grand_total.toLocaleString("id-ID")}
+                  </div>
+                  <div className="text-xs text-blue-600 mt-0.5">
+                    {expandedTrxId === trx.id ? "Tutup ▲" : "Detail ▼"}
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            {expandedTrxId === trx.id && (
+              <div className="border-t bg-gray-50 p-3">
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => {
+                      setReturnTrx(trx);
+                      setOpenReturn(true);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1 bg-orange-500 text-white px-3 py-2 rounded text-xs font-medium"
+                  >
+                    <RotateCcw size={14} />
+                    Retur
+                  </button>
+                  <button
+                    onClick={() => handlePrintClick(trx)}
+                    className="flex-1 flex items-center justify-center gap-1 bg-blue-500 text-white px-3 py-2 rounded text-xs font-medium"
+                  >
+                    <Printer size={14} />
+                    Print
+                  </button>
+                </div>
+                <div className="space-y-1.5">
+                  {trx.transaction_detail.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex justify-between text-xs border-b pb-1.5 last:border-b-0"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">
+                          {item.product_name || "-"}
+                        </div>
+                        <div className="text-gray-500">
+                          {item.qty} × Rp {item.price.toLocaleString("id-ID")}
+                          {item.product_discount > 0 && (
+                            <span className="text-orange-600">
+                              {" "}(−{item.product_discount.toLocaleString("id-ID")})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="font-medium shrink-0 ml-2">
+                        Rp {item.total.toLocaleString("id-ID")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 pt-2 border-t space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Discount customer</span>
+                    <span>Rp {trx.customer_discount.toLocaleString("id-ID")}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-sm">
+                    <span>Grand Total</span>
+                    <span>Rp {trx.grand_total.toLocaleString("id-ID")}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {!loading && transactions.length === 0 && (
+          <div className="p-6 text-center text-gray-500 text-sm">
+            Belum ada transaksi.
+          </div>
+        )}
+      </div>
+
       {/* PAGINATION */}
       {pagination && pagination.total_pages > 1 && (
-        <div className="flex justify-end gap-1">
+        <div className="flex justify-center md:justify-end gap-1 flex-wrap">
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="rounded border px-3 py-1 text-sm"
+            className="rounded border px-3 py-1 text-sm disabled:opacity-40"
           >
             «
           </button>
@@ -219,7 +318,7 @@ export default function HistoryTrxPage() {
           <button
             disabled={page === pagination.total_pages}
             onClick={() => setPage(page + 1)}
-            className="rounded border px-3 py-1 text-sm"
+            className="rounded border px-3 py-1 text-sm disabled:opacity-40"
           >
             »
           </button>
