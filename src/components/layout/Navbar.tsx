@@ -1,12 +1,31 @@
 "use client";
 import { Bell, Menu } from "lucide-react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 interface NavbarProps {
   onMenuClick?: () => void;
 }
 
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
+
 export default function Navbar({ onMenuClick }: NavbarProps) {
+  const [photoPath, setPhotoPath] = useState<string>("");
+
+  const fetchPhoto = () => {
+    fetch("/api/profile/me")
+      .then((r) => r.json())
+      .then((j) => setPhotoPath(j?.data?.photo || ""))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchPhoto();
+    const onProfile = () => fetchPhoto();
+    window.addEventListener("profile-updated", onProfile);
+    return () => window.removeEventListener("profile-updated", onProfile);
+  }, []);
+
   return (
     <header className="bg-secondary px-4 md:px-6 py-3 md:py-4 flex items-center justify-between sticky top-0 z-10">
       {/* Hamburger (mobile only) */}
@@ -32,13 +51,22 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
         </button>
 
         <div className="flex items-center space-x-2">
-          <Image
-            src={"/assets/boy.png"}
-            alt="User Avatar"
-            width={40}
-            height={40}
-            className="rounded-full object-cover bg-white w-8 h-8 md:w-10 md:h-10"
-          />
+          {photoPath ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={`${API_ORIGIN}${photoPath}`}
+              alt="User Avatar"
+              className="rounded-full object-cover bg-white w-8 h-8 md:w-10 md:h-10"
+            />
+          ) : (
+            <Image
+              src={"/assets/boy.png"}
+              alt="User Avatar"
+              width={40}
+              height={40}
+              className="rounded-full object-cover bg-white w-8 h-8 md:w-10 md:h-10"
+            />
+          )}
         </div>
       </div>
     </header>

@@ -12,13 +12,22 @@ import {
   Home,
   Warehouse,
   BanknoteArrowDown,
+  Settings,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { cn } from "@/utils/cn";
 import ExitModal from "../modal/exit/exit";
 import { useAuth } from "@/lib/context/AuthContext";
+
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
+
+const buildAssetUrl = (path: string) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_ORIGIN}${path}`;
+};
 
 type MenuSubItem = {
   name: string;
@@ -102,6 +111,16 @@ const menu: MenuSection[] = [
       },
     ]
     },
+    {
+    item: "Akun",
+    children: [
+      {
+        name: "Pengaturan",
+        icon: Settings,
+        path: "/settings",
+      },
+    ],
+  },
 ];
 
 interface SidebarProps {
@@ -113,11 +132,46 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [openExit, setOpenExit] = useState(false);
+  const [logoPath, setLogoPath] = useState<string>("");
+  const [photoPath, setPhotoPath] = useState<string>("");
   const { username, role } = useAuth();
 
   const toggleMenu = (name: string) => {
     setOpen((prev) => ({ ...prev, [name]: !prev[name] }));
   };
+
+  const fetchLogo = () => {
+    fetch("/api/setting/company_logo")
+      .then((r) => r.json())
+      .then((j) => setLogoPath(j?.data?.value || ""))
+      .catch(() => {});
+  };
+
+  const fetchPhoto = () => {
+    fetch("/api/profile/me")
+      .then((r) => r.json())
+      .then((j) => setPhotoPath(j?.data?.photo || ""))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchLogo();
+    fetchPhoto();
+  }, [pathname]);
+
+  useEffect(() => {
+    const onProfile = () => fetchPhoto();
+    const onLogo = () => fetchLogo();
+    window.addEventListener("profile-updated", onProfile);
+    window.addEventListener("logo-updated", onLogo);
+    return () => {
+      window.removeEventListener("profile-updated", onProfile);
+      window.removeEventListener("logo-updated", onLogo);
+    };
+  }, []);
+
+  const logoUrl = buildAssetUrl(logoPath);
+  const avatarUrl = photoPath ? buildAssetUrl(photoPath) : "/assets/boy.png";
 
   const handleLinkClick = () => {
     // Close sidebar on mobile — defer to next tick so Next.js navigation completes first
@@ -135,12 +189,21 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     >
       {/* Logo + Close (mobile) */}
       <div className="flex flex-row justify-between items-center px-5 lg:pl-8">
-        <span className="text-2xl text-primary font-bold text-center">
-          <h2 className="flex items-start justify-center gap-2 mt-2 text-center">
-            <span className="text-blue-600">Safa</span>
-            <span className="text-green-600">Bodycare!</span>
-          </h2>
-        </span>
+        {logoUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={logoUrl}
+            alt="Company Logo"
+            className="h-12 lg:h-14 object-contain"
+          />
+        ) : (
+          <span className="text-2xl text-primary font-bold text-center">
+            <h2 className="flex items-start justify-center gap-2 mt-2 text-center">
+              <span className="text-blue-600">Safa</span>
+              <span className="text-green-600">Bodycare!</span>
+            </h2>
+          </span>
+        )}
         <button
           type="button"
           onClick={onClose}
@@ -230,13 +293,24 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       </nav>
 
       <div className="flex justify-around items-center p-2 bg-secondary mx-2 rounded-md">
-        <Image
-          src={"/assets/boy.png"}
-          alt="User Avatar"
-          width={40}
-          height={40}
-          className="rounded-full object-cover bg-white"
-        />
+        {photoPath ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={avatarUrl}
+            alt="User Avatar"
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-full object-cover bg-white"
+          />
+        ) : (
+          <Image
+            src={"/assets/boy.png"}
+            alt="User Avatar"
+            width={40}
+            height={40}
+            className="rounded-full object-cover bg-white"
+          />
+        )}
         <div className="flex flex-col items-start w-full max-w-37.5">
           <span className="font-semibold text-black truncate max-w-30">
             {username}

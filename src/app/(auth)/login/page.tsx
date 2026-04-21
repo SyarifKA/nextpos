@@ -3,9 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FcGoogle } from "react-icons/fc";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
+
+const API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,8 +15,22 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [logoPath, setLogoPath] = useState<string>("");
   const { login } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/company-logo")
+      .then((r) => r.json())
+      .then((j) => setLogoPath(j?.data?.value || ""))
+      .catch(() => {});
+  }, []);
+
+  const logoUrl = logoPath
+    ? logoPath.startsWith("http")
+      ? logoPath
+      : `${API_ORIGIN}${logoPath}`
+    : "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,14 +75,24 @@ export default function LoginPage() {
       {/* Right Section */}
       <section className="flex flex-col md:col-span-1 justify-center px-8 md:px-20 py-10 bg-white">
         <h1 className="text-3xl font-semibold text-gray-900 leading-tight text-center">
-          {/* Selamat Datang <br /> Kembali! */}
           Selamat Datang <br /> di
         </h1>
-        
-        <h2 className="flex items-center justify-center gap-2 text-3xl font-bold mt-2 text-center">
-          <span className="text-blue-600">Safa</span>
-          <span className="text-green-600">Bodycare!</span>
-        </h2>
+
+        {logoUrl ? (
+          <div className="flex items-center justify-center mt-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoUrl}
+              alt="Company Logo"
+              className="h-16 md:h-20 object-contain"
+            />
+          </div>
+        ) : (
+          <h2 className="flex items-center justify-center gap-2 text-3xl font-bold mt-2 text-center">
+            <span className="text-blue-600">Safa</span>
+            <span className="text-green-600">Bodycare!</span>
+          </h2>
+        )}
 
         <p className="mt-2 text-sm text-gray-500 text-center">Login ke akun Anda</p>
 
