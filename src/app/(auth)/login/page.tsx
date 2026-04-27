@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [logoPath, setLogoPath] = useState<string>("");
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
   const { login } = useAuth();
   const router = useRouter();
 
@@ -26,6 +27,27 @@ export default function LoginPage() {
       .catch(() => {});
   }, []);
 
+  // Countdown timer for lockout
+  useEffect(() => {
+    if (lockoutSeconds <= 0) return;
+    const t = setInterval(() => {
+      setLockoutSeconds((prev) => {
+        if (prev <= 1) {
+          setError("");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [lockoutSeconds]);
+
+  const formatCountdown = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  };
+
   const logoUrl = logoPath
     ? logoPath.startsWith("http")
       ? logoPath
@@ -34,19 +56,24 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (lockoutSeconds > 0) return;
     setIsLoading(true);
     setError("");
 
     try {
-      const success = await login(email, password);
-      if (success) {
-        // Redirect to home page after successful login
+      const result = await login(email, password);
+      if (result.success) {
         router.push("/sales");
       } else {
-        setError("Invalid email or password. Please try again.");
+        setError(result.message || "Login gagal. Periksa email dan password.");
+        setPassword(""); // clear password input on failure
+        if (result.retryAfter && result.retryAfter > 0) {
+          setLockoutSeconds(result.retryAfter);
+        }
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError("Terjadi kesalahan. Silakan coba lagi.");
+      setPassword("");
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +129,15 @@ export default function LoginPage() {
         {/* <form className="mt-6 space-y-4" onSubmit={handleSubmit}> */}
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-              {error}
+              <div>{error}</div>
+              {lockoutSeconds > 0 && (
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs text-red-500">Coba lagi dalam:</span>
+                  <span className="font-mono font-bold text-red-700 text-lg tabular-nums">
+                    {formatCountdown(lockoutSeconds)}
+                  </span>
+                </div>
+              )}
             </div>
           )}
           
@@ -152,10 +187,14 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || lockoutSeconds > 0}
             className="w-full bg-blue-600 mt-4 text-white py-2 rounded-md font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Masuk..." : "Masuk"}
+            {lockoutSeconds > 0
+              ? `Terkunci (${formatCountdown(lockoutSeconds)})`
+              : isLoading
+              ? "Masuk..."
+              : "Masuk"}
           </button>
         </form>
       </section>

@@ -16,7 +16,7 @@ interface AuthContextType {
   loading: boolean;
   username: string | null;
   role: string | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string; retryAfter?: number }>;
   logout: () => void;
   getToken: () => Promise<string>;
   resetPass: (
@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (
     email: string,
     password: string
-  ): Promise<boolean> => {
+  ): Promise<{ success: boolean; message?: string; retryAfter?: number }> => {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}auth/login`,
@@ -117,8 +117,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const json = await res.json();
 
       if (!res.ok || json.status !== "OK001") {
+        // Parse Retry-After header (seconds) if present (sent on 429)
+        let retryAfter: number | undefined;
+        const retryHeader = res.headers.get("Retry-After");
+        if (retryHeader) {
+          const parsed = parseInt(retryHeader, 10);
+          if (!isNaN(parsed) && parsed > 0) retryAfter = parsed;
+        }
+
         console.error("Login failed:", json);
-        return false;
+        return {
+          success: false,
+          message:
+            json?.statusMessage || "Login gagal. Periksa email dan password.",
+          retryAfter,
+        };
       }
 
       const token = json?.data?.token?.token
@@ -126,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!token) {
         console.error("Token not found:", json);
-        return false;
+        return { success: false, message: "Token tidak ditemukan" };
       }
 
       cookieUtils.setAuthToken(token);
@@ -137,10 +150,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setRole(role);
       setIsAuthenticated(true);
 
-      return true;
+      return { success: true };
     } catch (error) {
       console.error("Login error:", error);
-      return false;
+      return {
+        success: false,
+        message: "Tidak dapat terhubung ke server",
+      };
     }
   };
 

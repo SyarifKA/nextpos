@@ -13,6 +13,7 @@ import {
   Warehouse,
   BanknoteArrowDown,
   Settings,
+  Users,
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -114,6 +115,11 @@ const menu: MenuSection[] = [
     {
     item: "Akun",
     children: [
+      {
+        name: "Manajemen User",
+        icon: Users,
+        path: "/user"
+      },
       {
         name: "Pengaturan",
         icon: Settings,
@@ -224,6 +230,9 @@ export default function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             {section.children.map((child) => {
               const childKey = `${section.item}-${child.name}`;
                 if (child.name === "Pengeluaran" && role !== "Admin") {
+                  return null;
+                }
+                if (child.name === "Manajemen User" && role !== "Admin") {
                   return null;
                 }
 
